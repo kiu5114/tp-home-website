@@ -1,0 +1,49 @@
+# =====================================================================
+# TP 全屋家居 · Git 忽略规则
+# ---------------------------------------------------------------------
+# 说明：排除本地运行产物、依赖目录、敏感数据与编辑器杂项，
+#       仅把源码与文档纳入版本管理。
+# =====================================================================
+
+# ---------- 后端运行产物 ----------
+# 虚拟环境（依赖由 requirements.txt 管理，不提交）
+backend/venv/
+# SQLite 数据库（含业务数据，不提交；生产用 PostgreSQL）
+backend/tp_home.db
+backend/*.db
+# 上传文件（运行时由 seed 重新生成占位图）
+backend/uploads/
+# Python 缓存
+__pycache__/
+*.py[cod]
+
+# ---------- 日志 ----------
+*.log
+backend.log
+
+# ---------- 前端依赖与构建产物 ----------
+# node_modules（依赖由 package-lock.json 锁定，不提交）
+node_modules/
+apps/web/node_modules/
+apps/admin/node_modules/
+# 构建产物（由 npm run build 生成）
+apps/web/dist/
+apps/admin/dist/
+# Vite 开发临时文件
+*.timestamp-*.mjs
+
+# ---------- 环境变量与密钥（防泄露） ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------- 编辑器/系统杂项 ----------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---------- 本地会话数据 ----------
+.workbuddy/

@@ -1,0 +1,12 @@
+:root {
+  --tp-gold: #b08d57;
+  --tp-ink: #1a1714;
+  --tp-sand: #faf8f5;
+  --tp-line: #e7e1d8;
+}
+
+body {
+  margin: 0;
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+  background: #f0f2f5;
+}

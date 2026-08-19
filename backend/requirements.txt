@@ -1,0 +1,11 @@
+# TP 全屋家居 后端依赖（开发技术文档 §2.3 / §3.2）
+fastapi>=0.110
+uvicorn[standard]>=0.27
+sqlalchemy>=2.0
+pydantic>=2.5
+python-jose[cryptography]>=3.3
+passlib[bcrypt]>=1.7
+# 注意：bcrypt 必须 <5.0 —— passlib 1.7.4 与 bcrypt 5.x 不兼容（72 字节密码自检崩溃）
+bcrypt>=4.0,<5.0
+python-multipart>=0.0.9
+alembic>=1.13

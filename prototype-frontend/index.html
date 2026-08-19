@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TP全屋家居 — 一站式全屋定制</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { ink:'#1A1714','ink-soft':'#4A463F',sand:'#FAF8F5',gold:'#B08D57','gold-soft':'#C9A875',line:'#E7E1D8' },
+    fontFamily: { serif:['"Noto Serif SC"','serif'], sans:['"Noto Sans SC"','sans-serif'] }
+  }}}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style type="text/tailwindcss">
+  @layer components {
+    .nav-link{ @apply text-[15px] text-ink/80 hover:text-gold transition-colors duration-200 cursor-pointer; }
+    .btn-gold{ @apply inline-flex items-center justify-center bg-gold text-white px-7 py-3 rounded-sm tracking-[0.15em] text-[15px] hover:bg-gold-soft transition-colors duration-200 cursor-pointer; }
+    .btn-ghost{ @apply inline-flex items-center justify-center border border-ink/30 text-ink px-7 py-3 rounded-sm tracking-[0.15em] text-[15px] hover:border-gold hover:text-gold transition-colors duration-200 cursor-pointer; }
+    .eyebrow{ @apply text-gold text-xs tracking-[0.35em] uppercase font-medium; }
+    .card-hover{ @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl; }
+    .chip{ @apply px-4 py-2 rounded-sm text-sm border border-line text-ink/70 hover:border-gold hover:text-gold transition-colors duration-200 cursor-pointer; }
+    .chip-active{ @apply bg-ink text-white border-ink hover:text-white; }
+    .section-title{ @apply font-serif text-3xl md:text-4xl font-semibold text-ink; }
+    .input{ @apply w-full px-4 py-3 rounded-sm border border-line bg-white focus:outline-none focus:ring-2 focus:ring-gold text-sm; }
+    /* Hero 建筑索引条 */
+    .tick{ @apply absolute top-0 w-px h-2 bg-white/45 border-0 p-0 cursor-pointer -translate-x-1/2 transition-all duration-200; }
+    .tick:hover{ @apply bg-white/90 h-3; }
+    .tick[aria-selected="true"]{ @apply bg-gold; }
+    .idx-marker{ @apply absolute bottom-0 w-[2px] h-6 bg-gold -translate-x-1/2 shadow-[0_0_10px_rgba(176,141,87,0.6)] transition-[left] duration-500 ease-out; }
+    .tick-label{ @apply absolute bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap text-[13px] tracking-[0.12em] text-white bg-ink/55 border border-white/15 px-2.5 py-1 rounded-sm opacity-0 pointer-events-none transition-opacity duration-200; }
+  }
+  html{scroll-behavior:smooth;}
+</style>
+</head>
+<body class="bg-sand text-ink antialiased">
+
+<!-- ===== 顶部导航（PRD §5.1，单份，hash 路由） ===== -->
+<header class="sticky top-0 z-50 bg-sand/95 backdrop-blur border-b border-line">
+  <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+    <a href="#home" class="flex items-center gap-2 cursor-pointer">
+      <span class="font-serif text-2xl tracking-[0.2em] text-ink font-bold">TP</span>
+      <span class="font-serif text-lg text-ink tracking-wide">全屋家居</span>
+    </a>
+    <nav class="hidden lg:flex items-center gap-9">
+      <a href="#home" data-page="home" class="nav-link font-medium">首页</a>
+      <div class="relative group h-20 flex items-center">
+        <a href="#products" data-page="products" class="nav-link flex items-center gap-1 font-medium">产品
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <div class="absolute left-1/2 -translate-x-1/2 top-20 pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="bg-white border border-line shadow-xl rounded-sm py-2">
+            <a href="#products" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">产品中心</a>
+            <a href="#cases" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">新案例展示</a>
+          </div>
+        </div>
+      </div>
+      <div class="relative group h-20 flex items-center">
+        <a href="#news" data-page="news" class="nav-link flex items-center gap-1 font-medium">新闻
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <div class="absolute left-1/2 -translate-x-1/2 top-20 pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="bg-white border border-line shadow-xl rounded-sm py-2">
+            <a href="#news/enterprise" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">企业新闻</a>
+            <a href="#news/industry" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">行业资讯</a>
+          </div>
+        </div>
+      </div>
+      <div class="relative group h-20 flex items-center">
+        <a href="#recruitment" data-page="recruitment" class="nav-link flex items-center gap-1 font-medium">招聘入口
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <div class="absolute left-1/2 -translate-x-1/2 top-20 pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="bg-white border border-line shadow-xl rounded-sm py-2">
+            <a href="#recruitment/social" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">社会招聘</a>
+            <a href="#recruitment/campus" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">校园招聘</a>
+          </div>
+        </div>
+      </div>
+      <div class="relative group h-20 flex items-center">
+        <a href="#about" data-page="about" class="nav-link flex items-center gap-1 font-medium">关于我们
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></a>
+        <div class="absolute left-1/2 -translate-x-1/2 top-20 pt-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="bg-white border border-line shadow-xl rounded-sm py-2">
+            <a href="#about/about-tp" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">关于TP</a>
+            <a href="#about/history" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">发展历程</a>
+            <a href="#about/brand" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">品牌介绍</a>
+            <a href="#about/appointment" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">在线预约</a>
+            <a href="#about/contact" class="block px-6 py-2.5 text-[15px] text-ink/80 hover:bg-sand hover:text-gold transition-colors cursor-pointer">联系我们</a>
+          </div>
+        </div>
+      </div>
+      <a href="#about/appointment" class="btn-gold ml-2">在线预约</a>
+    </nav>
+    <button id="menu-btn" class="lg:hidden text-ink cursor-pointer" aria-label="菜单">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  </div>
+  <div id="mobile-menu" class="lg:hidden hidden border-t border-line bg-sand px-6 py-4 space-y-1">
+    <a href="#home" class="block py-3 text-ink font-medium border-b border-line">首页</a>
+    <p class="pt-3 text-gold text-xs tracking-widest">产品</p>
+    <a href="#products" class="block py-2 pl-3 text-ink/80">产品中心</a>
+    <a href="#cases" class="block py-2 pl-3 text-ink/80">新案例展示</a>
+    <p class="pt-3 text-gold text-xs tracking-widest">新闻</p>
+    <a href="#news/enterprise" class="block py-2 pl-3 text-ink/80">企业新闻</a>
+    <a href="#news/industry" class="block py-2 pl-3 text-ink/80">行业资讯</a>
+    <p class="pt-3 text-gold text-xs tracking-widest">招聘入口</p>
+    <a href="#recruitment/social" class="block py-2 pl-3 text-ink/80">社会招聘</a>
+    <a href="#recruitment/campus" class="block py-2 pl-3 text-ink/80">校园招聘</a>
+    <p class="pt-3 text-gold text-xs tracking-widest">关于我们</p>
+    <a href="#about/about-tp" class="block py-2 pl-3 text-ink/80">关于TP</a>
+    <a href="#about/history" class="block py-2 pl-3 text-ink/80">发展历程</a>
+    <a href="#about/brand" class="block py-2 pl-3 text-ink/80">品牌介绍</a>
+    <a href="#about/appointment" class="block py-2 pl-3 text-ink/80">在线预约</a>
+    <a href="#about/contact" class="block py-2 pl-3 text-ink/80">联系我们</a>
+    <a href="#about/appointment" class="btn-gold w-full mt-3">在线预约</a>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- ============== SECTION: 首页 HOME ============== -->
+<!-- ============================================================ -->
+<section id="sec-home" class="page-section">
+
+  <!-- Hero 轮播 -->
+  <section id="hero" class="relative h-[88vh] min-h-[560px] bg-ink flex items-center overflow-hidden">
+    <div class="absolute inset-0 overflow-hidden">
+      <div id="hero-bg" class="absolute inset-0 opacity-85 will-change-transform" style="background-image:url('images/hero-living-hd.png');background-size:cover;background-position:center;"></div>
+    </div>
+    <div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(26,23,20,.46) 0%,rgba(26,23,20,.18) 45%,rgba(26,23,20,.04) 100%);"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 w-full text-white" id="hero-content">
+      <p class="eyebrow text-gold-soft mb-4">TP 全屋家居 · 一站式全屋定制</p>
+      <h1 class="font-serif text-5xl md:text-6xl font-semibold leading-tight max-w-3xl">以匠心筑就<br/>理想栖居之境</h1>
+      <p class="mt-5 text-white/75 text-lg max-w-xl">从空间规划到软装落地，我们用原创设计与智能制造，为你呈现有温度的家。</p>
+      <div class="mt-9 flex flex-wrap gap-4">
+        <a href="#products" class="btn-gold">探索产品</a>
+        <a href="#about/appointment" class="btn-ghost border-white/40 text-white hover:border-gold hover:text-gold">预约设计</a>
+      </div>
+    </div>
+    <div id="hero-ctrl" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 w-full max-w-7xl px-6">
+      <div class="flex items-end gap-8">
+        <div id="hero-idx" class="relative h-6 flex-1 max-w-[260px]" role="tablist" aria-label="首页轮播">
+          <div id="hero-line" class="absolute bottom-0 left-0 right-0 h-px bg-white/30"></div>
+          <!-- 刻度与金色标高线由 JS 注入 -->
+        </div>
+        <div class="flex items-center gap-5">
+          <button id="hero-prev" class="text-white/70 hover:text-gold text-2xl leading-none cursor-pointer transition-colors select-none" aria-label="上一张">‹</button>
+          <span id="hero-space" class="font-serif text-sm tracking-[0.18em] text-white/85 min-w-[6rem]"></span>
+          <button id="hero-next" class="text-white/70 hover:text-gold text-2xl leading-none cursor-pointer transition-colors select-none" aria-label="下一张">›</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 品牌工艺亮点 -->
+  <section class="max-w-7xl mx-auto px-6 py-20">
+    <div class="text-center mb-12">
+      <p class="eyebrow mb-3">CRAFTSMANSHIP</p>
+      <h2 class="section-title">四大核心工艺</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="highlights-list">
+      <div class="text-center py-10 text-ink-soft">加载中…</div>
+    </div>
+  </section>
+
+  <!-- 产品推荐 -->
+  <section class="bg-white border-y border-line">
+    <div class="max-w-7xl mx-auto px-6 py-20">
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <p class="eyebrow mb-3">PRODUCTS</p>
+          <h2 class="section-title">精选产品系列</h2>
+        </div>
+        <a href="#products" class="nav-link font-medium hidden sm:inline-flex items-center gap-1">查看全部
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></a>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="rec-products-list"></div>
+    </div>
+  </section>
+
+  <!-- 新案例展示预览 -->
+  <section class="max-w-7xl mx-auto px-6 py-20">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <p class="eyebrow mb-3">CASES</p>
+        <h2 class="section-title">真实落地实景</h2>
+      </div>
+      <a href="#cases" class="nav-link font-medium hidden sm:inline-flex items-center gap-1">更多案例
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="rec-cases-list"></div>
+  </section>
+
+  <!-- 新闻预览 -->
+  <section class="bg-white border-y border-line">
+    <div class="max-w-7xl mx-auto px-6 py-20">
+      <div class="flex items-end justify-between mb-10">
+        <div>
+          <p class="eyebrow mb-3">NEWS</p>
+          <h2 class="section-title">品牌动态</h2>
+        </div>
+        <a href="#news" class="nav-link font-medium hidden sm:inline-flex items-center gap-1">全部资讯
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="latest-news-list"></div>
+    </div>
+  </section>
+
+  <!-- 招聘 CTA -->
+  <section class="max-w-7xl mx-auto px-6 py-20">
+    <div class="bg-white border border-line rounded-sm text-ink flex flex-col md:flex-row items-center justify-between gap-8 p-12">
+      <div>
+        <p class="eyebrow text-ink/50 mb-3">JOIN US</p>
+        <h2 class="font-serif text-3xl font-semibold">与 TP 一同定义理想人居</h2>
+        <p class="mt-3 text-ink-soft max-w-lg">我们正在寻找设计师、工程师与品牌伙伴。无论社招校招，都期待你的加入。</p>
+      </div>
+      <a href="#recruitment" class="btn-gold whitespace-nowrap">查看职位</a>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- ============== SECTION: 产品中心 PRODUCTS ============== -->
+<!-- ============================================================ -->
+<section id="sec-products" class="page-section hidden">
+
+  <!-- 子页头图 -->
+  <section class="relative h-[34vh] min-h-[260px] bg-ink flex items-center overflow-hidden">
+    <div class="absolute inset-0 opacity-40" style="background-image:url('images/hero-living-hd.png');background-size:cover;background-position:center;"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 text-white">
+      <p class="eyebrow text-gold-soft mb-3">PRODUCTS</p>
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold">产品中心</h1>
+      <p class="mt-3 text-white/70">按系列与空间场景，找到属于你的那一抹生活美学</p>
+    </div>
+  </section>
+
+  <!-- 筛选 + 搜索 -->
+  <section class="max-w-7xl mx-auto px-6 py-10">
+    <div class="flex flex-col lg:flex-row lg:items-center gap-4 justify-between mb-6">
+      <div class="flex flex-wrap gap-2" id="series-filter">
+        <button class="chip chip-active" data-id="all">全部系列</button>
+      </div>
+      <div class="relative w-full lg:w-80">
+        <svg class="w-5 h-5 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="search" type="text" placeholder="搜索产品名称 / 系列" class="w-full pl-10 pr-4 py-2.5 rounded-sm border border-line bg-white focus:outline-none focus:ring-2 focus:ring-gold text-sm" />
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 mb-4" id="space-filter">
+      <button class="chip chip-active" data-id="all">全部空间</button>
+    </div>
+    <div class="flex flex-wrap gap-2 mb-8" id="reco-filter">
+      <button class="chip chip-active" data-id="all">全部</button>
+      <button class="chip" data-id="1">首页推荐</button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="product-grid"></div>
+    <div id="empty" class="hidden text-center py-16">
+      <p id="empty-text" class="text-ink-soft">未找到匹配的产品，请调整筛选条件。</p>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- ============== SECTION: 新案例展示 CASES ============== -->
+<!-- ============================================================ -->
+<section id="sec-cases" class="page-section hidden">
+
+  <!-- 子页头图 -->
+  <section class="relative h-[38vh] min-h-[300px] bg-ink flex items-center overflow-hidden">
+    <div class="absolute inset-0 opacity-40" style="background-image:url('images/case-living.png');background-size:cover;background-position:center;"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 text-white">
+      <p class="eyebrow text-gold-soft mb-3">CASES</p>
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold">新案例展示</h1>
+      <p class="mt-3 text-white/70">真实客户的全屋落地实景，看见生活的样子</p>
+    </div>
+  </section>
+
+  <!-- 案例列表（数据驱动，来源 /api/cases） -->
+  <section class="max-w-7xl mx-auto px-6 py-16">
+    <div id="case-loading" class="text-center text-ink-soft py-12">正在加载案例…</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="case-grid"></div>
+    <div id="case-empty" class="hidden text-center py-16 text-ink-soft">
+      <p class="font-serif text-xl">暂无案例</p>
+      <p class="text-sm mt-2">敬请期待更多精彩实景落地</p>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- ============== SECTION: 新闻中心 NEWS ============== -->
+<!-- ============================================================ -->
+<section id="sec-news" class="page-section hidden">
+
+  <!-- 子页头图 -->
+  <section class="relative h-[34vh] min-h-[260px] bg-ink flex items-center overflow-hidden">
+    <div class="absolute inset-0 opacity-40" style="background-image:url('images/case-living.png');background-size:cover;background-position:center;"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 text-white">
+      <p class="eyebrow text-gold-soft mb-3">NEWS</p>
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold">新闻中心</h1>
+      <p class="mt-3 text-white/70">品牌动态与行业洞察，与你同步每一次成长</p>
+    </div>
+  </section>
+
+  <!-- 企业新闻 -->
+  <section id="enterprise" class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+    <div class="flex items-center gap-3 mb-8"><span class="w-8 h-px bg-gold"></span><h2 class="font-serif text-2xl font-semibold">企业新闻</h2></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="enterprise-grid"></div>
+  </section>
+
+  <!-- 行业资讯 -->
+  <section id="industry" class="bg-white border-y border-line">
+    <div class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+      <div class="flex items-center gap-3 mb-8"><span class="w-8 h-px bg-gold"></span><h2 class="font-serif text-2xl font-semibold">行业资讯</h2></div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="industry-grid"></div>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- ============== SECTION: 关于我们 ABOUT ============== -->
+<!-- ============================================================ -->
+<section id="sec-about" class="page-section hidden">
+
+  <!-- 子页头图 -->
+  <section class="relative h-[34vh] min-h-[260px] bg-ink flex items-center overflow-hidden">
+    <div class="absolute inset-0 opacity-40" style="background-image:url('images/hero-living-hd.png');background-size:cover;background-position:center;"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 text-white">
+      <p class="eyebrow text-gold-soft mb-3">ABOUT TP</p>
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold">关于我们</h1>
+      <p class="mt-3 text-white/70">以匠心筑就理想栖居，让每一个家都被认真对待</p>
+    </div>
+  </section>
+
+  <!-- 关于TP -->
+  <section id="about-tp" class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <p class="eyebrow mb-3">ABOUT TP</p>
+        <h2 class="font-serif text-3xl font-semibold mb-5">企业实力</h2>
+        <p class="text-ink-soft leading-relaxed mb-4">TP 全屋家居成立于 2008 年，专注于一站式全屋定制。我们集原创设计、智能制造与全国服务网络于一体，致力于为家庭提供有温度、可成长的居住解决方案。</p>
+        <p class="text-ink-soft leading-relaxed">从板材到成品的全链路品控，让我们在环保、交付与售后上持续领先，已成为万千家庭信赖的家居伙伴。</p>
+      </div>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="bg-white border border-line rounded-sm p-8 text-center"><p class="font-serif text-4xl text-gold">300+</p><p class="text-sm text-ink-soft mt-2">全国门店</p></div>
+        <div class="bg-white border border-line rounded-sm p-8 text-center"><p class="font-serif text-4xl text-gold">18年</p><p class="text-sm text-ink-soft mt-2">品牌沉淀</p></div>
+        <div class="bg-white border border-line rounded-sm p-8 text-center"><p class="font-serif text-4xl text-gold">6大</p><p class="text-sm text-ink-soft mt-2">产品系列</p></div>
+        <div class="bg-white border border-line rounded-sm p-8 text-center"><p class="font-serif text-4xl text-gold">10年</p><p class="text-sm text-ink-soft mt-2">质保承诺</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 发展历程 -->
+  <section id="history" class="bg-white border-y border-line">
+    <div class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+      <p class="eyebrow mb-3">HISTORY</p>
+      <h2 class="font-serif text-3xl font-semibold mb-10">发展历程</h2>
+      <div class="relative border-l border-line pl-8 space-y-10">
+        <div class="relative"><span class="absolute -left-[37px] top-1 w-3 h-3 rounded-full bg-gold"></span><p class="text-gold text-sm">2008</p><h3 class="font-serif text-xl mt-1">品牌创立</h3><p class="text-ink-soft text-sm mt-1">以原创设计切入全屋定制赛道。</p></div>
+        <div class="relative"><span class="absolute -left-[37px] top-1 w-3 h-3 rounded-full bg-gold"></span><p class="text-gold text-sm">2014</p><h3 class="font-serif text-xl mt-1">自建智造基地</h3><p class="text-ink-soft text-sm mt-1">柔性产线投产，开启数字化品控。</p></div>
+        <div class="relative"><span class="absolute -left-[37px] top-1 w-3 h-3 rounded-full bg-gold"></span><p class="text-gold text-sm">2020</p><h3 class="font-serif text-xl mt-1">全国布局</h3><p class="text-ink-soft text-sm mt-1">门店突破百家，服务体系成型。</p></div>
+        <div class="relative"><span class="absolute -left-[37px] top-1 w-3 h-3 rounded-full bg-gold"></span><p class="text-gold text-sm">2026</p><h3 class="font-serif text-xl mt-1">新总部投产</h3><p class="text-ink-soft text-sm mt-1">产能与研发再升级，迈向新程。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 品牌介绍 -->
+  <section id="brand" class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div class="aspect-[4/3] bg-ink rounded-sm overflow-hidden"><div class="w-full h-full" style="background-image:url('images/hero-living-hd.png');background-size:cover;background-position:center;"></div></div>
+      <div>
+        <p class="eyebrow mb-3">BRAND</p>
+        <h2 class="font-serif text-3xl font-semibold mb-5">品牌介绍</h2>
+        <p class="text-ink-soft leading-relaxed mb-4">我们相信，家不是家具的堆砌，而是生活方式的容器。TP 以「东方人居美学」为内核，将人体工程学、原创设计与智能制造融为一体。</p>
+        <p class="text-ink-soft leading-relaxed">六大产品系列覆盖客厅、卧房、书房、餐厨到整屋，让每种生活都能找到恰好的模样。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 在线预约 -->
+  <section id="appointment" class="bg-white border-y border-line">
+    <div class="max-w-3xl mx-auto px-6 py-16 scroll-mt-24">
+      <div class="text-center mb-8">
+        <p class="eyebrow mb-3">APPOINTMENT</p>
+        <h2 class="font-serif text-3xl font-semibold">在线预约设计</h2>
+        <p class="mt-2 text-ink-soft text-sm">留下联系方式，专属设计师将与你预约到店或上门量房。</p>
+      </div>
+      <form id="appt-form" class="space-y-4 bg-sand border border-line rounded-sm p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label class="block text-sm mb-1.5" for="p-name">姓名 *</label><input id="p-name" required class="input" placeholder="你的姓名" /></div>
+          <div><label class="block text-sm mb-1.5" for="p-phone">手机号 *</label><input id="p-phone" required type="tel" class="input" placeholder="11 位手机号" /></div>
+        </div>
+        <div><label class="block text-sm mb-1.5" for="p-city">城市 *</label><input id="p-city" required class="input" placeholder="所在城市" /></div>
+        <div><label class="block text-sm mb-1.5" for="p-type">预约类型</label>
+          <select id="p-type" class="input"><option>设计咨询</option><option>预约到店</option><option>上门量房</option><option>招商咨询</option></select></div>
+        <div id="p-store-wrap" class="hidden"><label class="block text-sm mb-1.5" for="p-store">选择门店</label>
+          <select id="p-store" class="input"><option value="">请选择门店</option></select></div>
+        <div><label class="block text-sm mb-1.5" for="p-msg">留言</label><textarea id="p-msg" rows="4" class="input" placeholder="告诉我们你的需求"></textarea></div>
+        <button type="submit" class="btn-gold w-full">提交预约</button>
+        <p id="appt-ok" class="hidden text-center text-gold text-sm">预约已提交，我们会尽快与你联系！</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- 联系我们 -->
+  <section id="contact" class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+    <p class="eyebrow mb-3">CONTACT</p>
+    <h2 class="font-serif text-3xl font-semibold mb-10">联系我们 / 门店</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div class="space-y-4" id="store-list"></div>
+      <div>
+        <div class="aspect-[4/3] bg-ink/10 border border-line rounded-sm overflow-hidden">
+          <img src="images/map-screenshot.png" alt="门店位置地图（地图供应商待确认）" class="w-full h-full object-cover" />
+        </div>
+        <p class="text-xs text-ink-soft mt-2">* 地图供应商（腾讯地图 / 高德地图）待业务方确认后替换为正式地图组件</p>
+        <div class="mt-6 bg-white border border-line rounded-sm p-6 text-center">
+          <p class="font-serif text-lg mb-2">想预约到店？</p>
+          <p class="text-sm text-ink-soft mb-5">在上方选择门店、填写信息，我们的设计顾问将为你安排专属到店体验。</p>
+          <a href="#about/appointment" class="btn-gold w-full">前往在线预约 →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- ============== SECTION: 招聘入口 RECRUITMENT ============== -->
+<!-- ============================================================ -->
+<section id="sec-recruitment" class="page-section hidden">
+
+  <!-- 子页头图 -->
+  <section class="relative h-[34vh] min-h-[260px] bg-ink flex items-center overflow-hidden">
+    <div class="absolute inset-0 opacity-40" style="background-image:url('images/hero-dining.png');background-size:cover;background-position:center;"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 text-white">
+      <p class="eyebrow text-gold-soft mb-3">JOIN US</p>
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold">招聘入口</h1>
+      <p class="mt-3 text-white/70">与 TP 一同，定义理想人居的下一程</p>
+    </div>
+  </section>
+
+  <!-- 社会招聘 -->
+  <section id="social" class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+    <div class="flex items-center gap-3 mb-8"><span class="w-8 h-px bg-gold"></span><h2 class="font-serif text-2xl font-semibold">社会招聘</h2></div>
+    <div class="space-y-4" id="social-list"></div>
+  </section>
+
+  <!-- 校园招聘 -->
+  <section id="campus" class="bg-white border-y border-line">
+    <div class="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
+      <div class="flex items-center gap-3 mb-8"><span class="w-8 h-px bg-gold"></span><h2 class="font-serif text-2xl font-semibold">校园招聘</h2></div>
+      <div class="space-y-4" id="campus-list"></div>
+    </div>
+  </section>
+
+  <!-- 在线投递 -->
+  <section class="max-w-3xl mx-auto px-6 py-16">
+    <div class="text-center mb-8">
+      <p class="eyebrow mb-3">APPLY</p>
+      <h2 class="font-serif text-3xl font-semibold">在线投递</h2>
+      <p class="mt-2 text-ink-soft text-sm">填写以下信息并提交，我们将在 5 个工作日内与你联系。</p>
+    </div>
+    <form id="apply-form" class="space-y-4 bg-sand border border-line rounded-sm p-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label class="block text-sm mb-1.5" for="a-name">姓名 *</label><input id="a-name" required class="input" placeholder="你的姓名" /></div>
+        <div><label class="block text-sm mb-1.5" for="a-phone">手机号 *</label><input id="a-phone" required type="tel" class="input" placeholder="11 位手机号" /></div>
+      </div>
+      <div><label class="block text-sm mb-1.5" for="a-job">应聘职位 *</label>
+        <select id="a-job" required class="input"><option value="">请选择职位</option></select></div>
+      <div><label class="block text-sm mb-1.5" for="a-email">简历链接 / 邮箱</label><input id="a-email" class="input" placeholder="个人作品集或简历邮箱" /></div>
+      <div><label class="block text-sm mb-1.5" for="a-msg">自我介绍</label><textarea id="a-msg" rows="4" class="input" placeholder="简单介绍一下你的经历与意愿"></textarea></div>
+      <button type="submit" class="btn-gold w-full">提交投递</button>
+      <p id="apply-ok" class="hidden text-center text-gold text-sm">已收到你的投递，感谢关注 TP！</p>
+    </form>
+  </section>
+</section>
+
+<!-- ===== 页脚（单份） ===== -->
+<footer class="bg-[#14110E] text-white/70 py-16">
+  <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+    <div>
+      <div class="flex items-center gap-2 mb-4"><span class="font-serif text-2xl tracking-[0.2em] text-white font-bold">TP</span><span class="font-serif text-lg">全屋家居</span></div>
+      <p class="text-sm leading-relaxed">以匠心筑就理想栖居，提供一站式全屋定制解决方案。</p>
+    </div>
+    <div><h4 class="text-white font-medium mb-4">快速链接</h4><ul class="space-y-2 text-sm">
+      <li><a href="#products" class="hover:text-gold transition-colors cursor-pointer">产品中心</a></li>
+      <li><a href="#cases" class="hover:text-gold transition-colors cursor-pointer">新案例展示</a></li>
+      <li><a href="#news" class="hover:text-gold transition-colors cursor-pointer">新闻资讯</a></li>
+      <li><a href="#recruitment" class="hover:text-gold transition-colors cursor-pointer">招聘入口</a></li></ul></div>
+    <div><h4 class="text-white font-medium mb-4">关于</h4><ul class="space-y-2 text-sm">
+      <li><a href="#about/about-tp" class="hover:text-gold transition-colors cursor-pointer">关于TP</a></li>
+      <li><a href="#about/history" class="hover:text-gold transition-colors cursor-pointer">发展历程</a></li>
+      <li><a href="#about/brand" class="hover:text-gold transition-colors cursor-pointer">品牌介绍</a></li>
+      <li><a href="#about/contact" class="hover:text-gold transition-colors cursor-pointer">联系我们</a></li></ul></div>
+    <div><h4 class="text-white font-medium mb-4">联系方式</h4><ul class="space-y-2 text-sm" id="footer-contact">
+      <li>服务热线：400-XXX-XXXX</li><li>邮箱：service@tp-home.com</li><li>地址：XX 市 XX 区 XX 路 1 号</li></ul></div>
+  </div>
+  <div class="max-w-7xl mx-auto px-6 mt-12 pt-6 border-t border-white/10 text-sm text-white/40" id="footer-copy">© 2026 TP全屋家居. 保留所有权利。</div>
+</footer>
+
+<!-- ============================================================ -->
+<!-- ============== 全局弹层 MODALS ============== -->
+<!-- ============================================================ -->
+
+<!-- 产品详情弹层 -->
+<div id="product-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 p-4">
+  <div class="bg-white w-full max-w-3xl rounded-sm overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center px-7 py-4 border-b border-line">
+      <h3 id="pr-name" class="font-serif text-xl text-ink"></h3>
+      <button id="p-close" class="text-ink/60 hover:text-gold cursor-pointer text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-gold rounded-sm" aria-label="关闭">&times;</button>
+    </div>
+    <div class="p-7">
+      <div class="aspect-[16/9] bg-ink rounded-sm mb-6 overflow-hidden"><div id="pr-img" class="w-full h-full" style="background-size:cover;background-position:center;"></div></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">系列</p><p id="pr-series" class="font-medium mt-1"></p></div>
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">空间</p><p id="pr-space" class="font-medium mt-1"></p></div>
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">材质</p><p id="pr-material" class="font-medium mt-1"></p></div>
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">尺寸</p><p id="pr-dim" class="font-medium mt-1"></p></div>
+      </div>
+      <p class="text-xs text-gold tracking-widest mb-2">产品说明</p>
+      <p id="pr-desc" class="text-ink-soft leading-relaxed text-sm"></p>
+      <div class="mt-7"><a href="#about/appointment" class="btn-gold" onclick="closeProductModal()">预约同款设计</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- 案例详情弹层 -->
+<div id="case-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 p-4">
+  <div class="bg-white w-full max-w-3xl rounded-sm overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center px-7 py-4 border-b border-line">
+      <h3 id="c-title" class="font-serif text-xl text-ink"></h3>
+      <button id="c-close" class="text-ink/60 hover:text-gold cursor-pointer text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-gold rounded-sm" aria-label="关闭">&times;</button>
+    </div>
+    <div class="p-7">
+      <div class="aspect-[16/9] bg-ink rounded-sm mb-6 overflow-hidden">
+        <img id="c-img" src="images/case-living.png" alt="案例实景" class="w-full h-full object-cover" />
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">客户</p><p id="c-customer" class="font-medium mt-1"></p></div>
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">户型</p><p id="c-type" class="font-medium mt-1"></p></div>
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">风格</p><p id="c-style" class="font-medium mt-1"></p></div>
+        <div class="bg-sand rounded-sm py-3"><p class="text-xs text-ink-soft">面积</p><p id="c-area" class="font-medium mt-1"></p></div>
+      </div>
+      <p class="text-xs text-gold tracking-widest mb-2">所用系列</p>
+      <p id="c-series" class="text-ink font-medium mb-5"></p>
+      <p class="text-xs text-gold tracking-widest mb-2">方案说明</p>
+      <p id="c-desc" class="text-ink-soft leading-relaxed text-sm"></p>
+      <div class="mt-7"><a href="#about/appointment" class="btn-gold" onclick="closeCaseDetail()">同款方案预约设计</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- 新闻详情弹层 -->
+<div id="news-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 p-4">
+  <div class="bg-white w-full max-w-3xl rounded-sm overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center px-7 py-4 border-b border-line">
+      <h3 id="n-title" class="font-serif text-xl text-ink"></h3>
+      <button id="n-close" class="text-ink/60 hover:text-gold cursor-pointer text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-gold rounded-sm" aria-label="关闭">&times;</button>
+    </div>
+    <div class="p-7">
+      <div class="aspect-[16/9] bg-ink rounded-sm mb-6 overflow-hidden"><div id="n-img" class="w-full h-full" style="background-size:cover;background-position:center;"></div></div>
+      <p id="n-meta" class="text-xs text-ink-soft mb-4"></p>
+      <p id="n-body" class="text-ink-soft leading-relaxed text-sm whitespace-pre-line"></p>
+    </div>
+  </div>
+</div>
+
+<!-- JD 弹层 -->
+<div id="job-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/60 p-4">
+  <div class="bg-white w-full max-w-2xl rounded-sm overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center px-7 py-4 border-b border-line">
+      <h3 id="j-title" class="font-serif text-xl text-ink"></h3>
+      <button id="j-close" class="text-ink/60 hover:text-gold cursor-pointer text-2xl leading-none focus:outline-none focus:ring-2 focus:ring-gold rounded-sm" aria-label="关闭">&times;</button>
+    </div>
+    <div class="p-7 space-y-5 text-sm text-ink-soft leading-relaxed">
+      <div class="flex flex-wrap gap-2 text-xs">
+        <span id="j-tag1" class="bg-sand px-3 py-1 rounded-sm"></span>
+        <span id="j-tag2" class="bg-sand px-3 py-1 rounded-sm"></span>
+        <span id="j-tag3" class="bg-sand px-3 py-1 rounded-sm"></span>
+      </div>
+      <div><p class="text-gold text-xs tracking-widest mb-2">岗位职责</p><ul id="j-duty" class="list-disc pl-5 space-y-1"></ul></div>
+      <div><p class="text-gold text-xs tracking-widest mb-2">任职要求</p><ul id="j-req" class="list-disc pl-5 space-y-1"></ul></div>
+      <div class="pt-2"><button class="btn-gold w-full" onclick="document.getElementById('job-modal').classList.add('hidden');document.getElementById('job-modal').classList.remove('flex');document.getElementById('apply-form').scrollIntoView({behavior:'smooth'});">立即投递</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+(function(){
+  /* ===== 通用：移动端菜单 ===== */
+  const menuBtn=document.getElementById('menu-btn');
+  const mobileMenu=document.getElementById('mobile-menu');
+  if(menuBtn) menuBtn.addEventListener('click',()=>mobileMenu.classList.toggle('hidden'));
+
+  /* ===== 图片解析（兼容离线） ===== */
+  function imgUrl(u){ return window.resolveImg ? resolveImg(u) : (u||''); }
+
+  /* ============================================================
+   * HOME
+   * ============================================================ */
+  let homeBanners=[],homeHi=0,heroTimer=null,heroPaused=false;
+  const heroBg=document.getElementById('hero-bg');
+  const heroIdx=document.getElementById('hero-idx');
+  const heroSpace=document.getElementById('hero-space');
+  const heroPrev=document.getElementById('hero-prev');
+  const heroNext=document.getElementById('hero-next');
+  const heroEl=document.getElementById('hero');
+  const heroContent=document.getElementById('hero-content');
+  let heroMarker=null, heroTicks=[];
+  function heroLabel(b,i){ return (b&&b.title||'').replace(/\n/g,' ').trim() || ('场景 '+(i+1)); }
+  function homeVisible(){ const s=document.getElementById('sec-home'); return s && !s.classList.contains('hidden'); }
+  function renderHero(b){
+    if(!b||!b.length) return;
+    homeBanners=b;
+    const first=b[0];
+    heroBg.style.backgroundImage=`url('${resolveHero(first.img_url)}')`;
+    heroContent.querySelector('h1').innerHTML=first.title.replace(/\n/g,'<br/>')||'以匠心筑就<br/>理想栖居之境';
+    heroContent.querySelector('p').textContent=first.subtitle||'从空间规划到软装落地，我们用原创设计与智能制造，为你呈现有温度的家。';
+    // 建筑索引条：刻度 + 金色标高线
+    heroIdx.querySelectorAll('.tick,.idx-marker').forEach(n=>n.remove());
+    heroTicks=[];
+    const N=homeBanners.length;
+    homeBanners.forEach((s,i)=>{
+      const leftPct=(N>1?i/(N-1)*100:50);
+      const t=document.createElement('button');
+      t.className='tick';
+      t.style.left=leftPct+'%';
+      t.setAttribute('role','tab');
+      t.setAttribute('aria-label',heroLabel(s,i));
+      t.setAttribute('aria-selected', i===0?'true':'false');
+      t.innerHTML=`<span class="tick-label">${heroLabel(s,i)}</span>`;
+      t.addEventListener('click',()=>{ showHero(i); resetHeroTimer(); });
+      t.addEventListener('mouseenter',()=>{ if(heroMarker) heroMarker.style.left=leftPct+'%'; });
+      t.addEventListener('mouseleave',()=>{ if(heroMarker) heroMarker.style.left=(N>1?homeHi/(N-1)*100:50)+'%'; });
+      heroIdx.appendChild(t); heroTicks.push(t);
+    });
+    heroMarker=document.createElement('div');
+    heroMarker.className='idx-marker';
+    heroMarker.style.left=(N>1?0:50)+'%';
+    heroIdx.appendChild(heroMarker);
+    showHero(0);startHeroTimer();
+  }
+  function showHero(i){
+    if(!homeBanners.length) return;
+    const N=homeBanners.length;
+    homeHi=(i+N)%N;
+    const b=homeBanners[homeHi];
+    // 背景图 + Ken Burns 缓慢推进（空间纵深感）
+    heroBg.style.transition='none';
+    heroBg.style.transform='scale(1)';
+    void heroBg.offsetWidth;
+    heroBg.style.backgroundImage=`url('${resolveHero(b.img_url)}')`;
+    heroBg.style.transition='transform 7s ease-out';
+    heroBg.style.transform='scale(1.06)';
+    // 页面原有文字保持不动
+    heroContent.querySelector('h1').innerHTML=b.title.replace(/\n/g,'<br/>')||'以匠心筑就<br/>理想栖居之境';
+    heroContent.querySelector('p').textContent=b.subtitle||'从空间规划到软装落地，我们用原创设计与智能制造，为你呈现有温度的家。';
+    // 索引条状态
+    if(heroMarker) heroMarker.style.left=(N>1?homeHi/(N-1)*100:50)+'%';
+    if(heroSpace) heroSpace.textContent=heroLabel(b,homeHi);
+    heroTicks.forEach((t,k)=>t.setAttribute('aria-selected', k===homeHi?'true':'false'));
+  }
+  function startHeroTimer(){ if(heroTimer) clearInterval(heroTimer); heroTimer=setInterval(()=>{ if(!heroPaused) showHero(homeHi+1); },7000); }
+  function resetHeroTimer(){ startHeroTimer(); }
+  if(heroPrev) heroPrev.addEventListener('click',()=>{ showHero(homeHi-1); resetHeroTimer(); });
+  if(heroNext) heroNext.addEventListener('click',()=>{ showHero(homeHi+1); resetHeroTimer(); });
+  if(heroEl){
+    heroEl.addEventListener('mouseenter',()=>{ heroPaused=true; });
+    heroEl.addEventListener('mouseleave',()=>{ heroPaused=false; });
+    // 触摸左右滑动
+    let sx=0;
+    heroEl.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; },{passive:true});
+    heroEl.addEventListener('touchend',e=>{
+      const dx=e.changedTouches[0].clientX-sx;
+      if(Math.abs(dx)>40){ showHero(homeHi+(dx<0?1:-1)); resetHeroTimer(); }
+    },{passive:true});
+  }
+  // 键盘左右切换（仅首页可见时）
+  document.addEventListener('keydown',e=>{
+    if(!homeVisible()) return;
+    if(e.key==='ArrowRight'){ showHero(homeHi+1); resetHeroTimer(); }
+    else if(e.key==='ArrowLeft'){ showHero(homeHi-1); resetHeroTimer(); }
+  });
+
+  const hlIcons={
+    '人体工程学':'<svg class="w-10 h-10 text-gold mb-5" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>',
+    '原创设计':'<svg class="w-10 h-10 text-gold mb-5" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M4 20l4-12 4 6 4-9 4 15"/><circle cx="12" cy="12" r="1.5"/></svg>',
+    '智能产线':'<svg class="w-10 h-10 text-gold mb-5" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg>',
+    '售后':'<svg class="w-10 h-10 text-gold mb-5" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.5-7 10-7 10z"/></svg>'
+  };
+  async function homeInit(){
+    try{
+      const data=await publicApi.home();
+      if(data.site){
+        const copy=document.getElementById('footer-copy'); if(copy) copy.textContent=data.site.copyright||'© 2026 TP全屋家居. 保留所有权利。';
+        const contact=document.getElementById('footer-contact');
+        const about=await publicApi.about('contact').catch(()=>null);
+        if(about && about.content){
+          const parts=about.content.split(',');
+          if(contact) contact.innerHTML=`<li>服务热线：${parts[0]||'400-XXX-XXXX'}</li><li>邮箱：${parts[1]||'service@tp-home.com'}</li><li>地址：${parts[2]||'XX 市 XX 区 XX 路 1 号'}</li>`;
+        }
+      }
+      renderHero(data.banners);
+      document.getElementById('highlights-list').innerHTML=(data.highlights||[]).map(h=>`
+        <div class="card-hover bg-white border border-line rounded-sm p-8">
+          ${hlIcons[h.icon]||hlIcons['原创设计']}
+          <h3 class="font-serif text-xl mb-2">${h.title}</h3>
+          <p class="text-sm text-ink-soft leading-relaxed">${h.desc}</p>
+        </div>`).join('');
+      document.getElementById('rec-products-list').innerHTML=(data.rec_products||[]).map(p=>`
+        <a href="#products" class="card-hover group cursor-pointer">
+          <div class="aspect-[4/5] bg-ink overflow-hidden rounded-sm"><div class="w-full h-full transition-transform duration-500 group-hover:scale-105" style="background-image:url('${imgUrl((p.images||'').split(',')[0])}');background-size:cover;background-position:center;"></div></div>
+          <p class="mt-4 text-xs text-ink-soft">${p.material||''}</p>
+          <h3 class="font-serif text-lg mt-1 group-hover:text-gold transition-colors">${p.name}</h3>
+        </a>`).join('');
+      document.getElementById('rec-cases-list').innerHTML=(data.rec_cases||[]).map(c=>`
+        <a href="#cases" class="card-hover group cursor-pointer">
+          <div class="aspect-[3/2] bg-ink overflow-hidden rounded-sm"><div class="w-full h-full transition-transform duration-500 group-hover:scale-105" style="background-image:url('${imgUrl((c.images||'').split(',')[0])}');background-size:cover;background-position:center;"></div></div>
+          <p class="mt-4 text-xs text-ink-soft">${c.style||''} · ${c.area||''}</p>
+          <h3 class="font-serif text-lg mt-1 group-hover:text-gold transition-colors">${c.title}</h3>
+        </a>`).join('');
+      document.getElementById('latest-news-list').innerHTML=(data.latest_news||[]).map(n=>`
+        <a href="#news" class="card-hover group cursor-pointer">
+          <div class="aspect-[16/9] bg-ink overflow-hidden rounded-sm"><div class="w-full h-full transition-transform duration-500 group-hover:scale-105" style="background-image:url('${imgUrl(n.cover)}');background-size:cover;background-position:center;"></div></div>
+          <p class="mt-4 text-xs text-ink-soft">${n.author||''} · ${n.published_at?n.published_at.slice(0,10):''}</p>
+          <h3 class="font-serif text-lg mt-1 group-hover:text-gold transition-colors">${n.title}</h3>
+        </a>`).join('');
+    }catch(e){
+      console.error(e);
+      const hl=document.getElementById('highlights-list'); if(hl) hl.innerHTML='<div class="text-center text-red-500 py-10">数据加载失败，请确认后端服务已启动</div>';
+    }
+  }
+
+  /* ============================================================
+   * PRODUCTS
+   * ============================================================ */
+  let allProducts=[],seriesList=[],spacesList=[];
+  let curSeries='all',curSpace='all',curReco='all',prodKw='';
+  const pModal=document.getElementById('product-modal');
+  function prodRenderFilters(){
+    const sWrap=document.getElementById('series-filter');
+    sWrap.innerHTML='<button class="chip chip-active" data-id="all">全部系列</button>'+
+      seriesList.map(s=>`<button class="chip" data-id="${s.id}">${s.name}</button>`).join('');
+    const spWrap=document.getElementById('space-filter');
+    spWrap.innerHTML='<button class="chip chip-active" data-id="all">全部空间</button>'+
+      spacesList.map(s=>`<button class="chip" data-id="${s.id}">${s.name}</button>`).join('');
+    sWrap.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+      sWrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('chip-active')); b.classList.add('chip-active');
+      curSeries=b.dataset.id; prodRender();
+    }));
+    spWrap.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+      spWrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('chip-active')); b.classList.add('chip-active');
+      curSpace=b.dataset.id; prodRender();
+    }));
+    const recoWrap=document.getElementById('reco-filter');
+    recoWrap.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+      recoWrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('chip-active')); b.classList.add('chip-active');
+      curReco=b.dataset.id; prodRender();
+    }));
+    const searchEl=document.getElementById('search');
+    if(searchEl) searchEl.addEventListener('input',e=>{prodKw=e.target.value.trim();prodRender();});
+  }
+  function prodUpdateFilterActive(){
+    document.querySelectorAll('#series-filter .chip').forEach(b=>b.classList.toggle('chip-active',String(b.dataset.id)===String(curSeries)));
+    document.querySelectorAll('#space-filter .chip').forEach(b=>b.classList.toggle('chip-active',String(b.dataset.id)===String(curSpace)));
+    document.querySelectorAll('#reco-filter .chip').forEach(b=>b.classList.toggle('chip-active',String(b.dataset.id)===String(curReco)));
+  }
+  function prodRender(){
+    const grid=document.getElementById('product-grid'); const empty=document.getElementById('empty');
+    grid.innerHTML='';
+    let list=allProducts.filter(p=>{
+      const sMatch=curSeries==='all'||String(p.series_id)===String(curSeries);
+      const spMatch=curSpace==='all'||String(p.space_id)===String(curSpace);
+      const recoMatch=curReco==='all'||!!p.is_recommended===!!(+curReco);
+      const kwMatch=!prodKw||p.name.includes(prodKw)||(p.material||'').includes(prodKw)||(seriesList.find(s=>s.id===p.series_id)?.name||'').includes(prodKw);
+      return sMatch&&spMatch&&recoMatch&&kwMatch;
+    });
+    list.sort((a,b)=>(b.is_recommended?1:0)-(a.is_recommended?1:0)||a.sort-b.sort);
+    if(list.length===0){
+      empty.classList.remove('hidden');
+      const emptyText=document.getElementById('empty-text');
+      if(curSeries!=='all'){
+        const sName=seriesList.find(s=>String(s.id)===String(curSeries))?.name||'';
+        emptyText.innerHTML=`“${sName}”系列暂无产品，<a href="admin-login.html" class="text-gold hover:underline">前往后台添加</a>后即可在前台展示。`;
+      } else if(curSpace!=='all'){
+        const spName=spacesList.find(s=>String(s.id)===String(curSpace))?.name||'';
+        emptyText.textContent=`“${spName}”空间场景暂无产品，请调整筛选条件。`;
+      } else {
+        emptyText.textContent='未找到匹配的产品，请调整筛选条件。';
+      }
+    } else {
+      empty.classList.add('hidden');
+    }
+    list.forEach(p=>{
+      const seriesName=seriesList.find(s=>s.id===p.series_id)?.name||'';
+      const spaceName=spacesList.find(s=>s.id===p.space_id)?.name||'';
+      const el=document.createElement('div');
+      el.className='product-card cursor-pointer card-hover group rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold';
+      el.setAttribute('tabindex','0'); el.setAttribute('role','button');
+      const badge=p.is_recommended?`<span class="absolute top-3 left-3 z-10 text-[11px] tracking-wider px-2 py-1 bg-gold text-white rounded-sm">首页推荐</span>`:'';
+      el.innerHTML=`<div class="relative aspect-[4/3] bg-ink overflow-hidden rounded-sm">${badge}<div class="w-full h-full transition-transform duration-500 group-hover:scale-105" style="background-image:url('${imgUrl((p.images||'').split(',')[0])}');background-size:cover;background-position:center;"></div></div>
+        <p class="mt-4 text-xs text-ink-soft">${seriesName} · ${spaceName}</p>
+        <h3 class="font-serif text-lg mt-1 group-hover:text-gold transition-colors">${p.name}</h3>`;
+      el.addEventListener('click',()=>openProductModal(p));
+      el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openProductModal(p);}});
+      grid.appendChild(el);
+    });
+  }
+  function openProductModal(p){
+    document.getElementById('pr-name').textContent=p.name;
+    document.getElementById('pr-series').textContent=seriesList.find(s=>s.id===p.series_id)?.name||'—';
+    document.getElementById('pr-space').textContent=spacesList.find(s=>s.id===p.space_id)?.name||'—';
+    document.getElementById('pr-material').textContent=p.material||'—';
+    document.getElementById('pr-dim').textContent=p.dimensions||'—';
+    document.getElementById('pr-desc').textContent=p.description||'暂无说明';
+    document.getElementById('pr-img').style.backgroundImage=`url('${imgUrl((p.images||'').split(',')[0])}')`;
+    pModal.classList.remove('hidden'); pModal.classList.add('flex'); document.body.style.overflow='hidden';
+  }
+  window.closeProductModal=function(){ pModal.classList.add('hidden'); pModal.classList.remove('flex'); document.body.style.overflow=''; };
+  const pClose=document.getElementById('p-close'); if(pClose) pClose.addEventListener('click',closeProductModal);
+  if(pModal) pModal.addEventListener('click',e=>{if(e.target===pModal)closeProductModal();});
+  async function prodInit(){
+    try{
+      const cats=await publicApi.categories();
+      seriesList=cats.series||[]; spacesList=(cats.spaces||[]).filter(s=>['all','product'].includes(s.scope));
+      prodRenderFilters();
+      allProducts=await publicApi.products();
+      prodUpdateFilterActive();
+      prodRender();
+    }catch(e){ console.error(e); const g=document.getElementById('product-grid'); if(g) g.innerHTML='<div class="text-center text-red-500 py-16">数据加载失败</div>'; }
+  }
+
+  /* ============================================================
+   * CASES
+   * ============================================================ */
+  let caseList=[];
+  const cModal=document.getElementById('case-modal');
+  function renderCases(cases){
+    caseList=cases||[];
+    const loading=document.getElementById('case-loading'); if(loading) loading.classList.add('hidden');
+    const grid=document.getElementById('case-grid'); const empty=document.getElementById('case-empty');
+    grid.innerHTML='';
+    if(!caseList.length){ empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    caseList.forEach((c,idx)=>{
+      const el=document.createElement('div');
+      el.className='case-card cursor-pointer card-hover group rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold';
+      el.setAttribute('tabindex','0'); el.setAttribute('role','button');
+      const typeLabel=c.house_type||'整屋';
+      const styleLabel=c.style||'现代';
+      const img=resolveImg(c.images);
+      el.innerHTML=`
+        <div class="aspect-[3/2] bg-ink overflow-hidden rounded-sm">
+          <div class="w-full h-full transition-transform duration-500 group-hover:scale-105" style="background-image:url('${img}');background-size:cover;background-position:center;"></div>
+        </div>
+        <p class="mt-4 text-xs text-ink-soft">${styleLabel} · ${typeLabel}</p>
+        <h3 class="font-serif text-lg mt-1 group-hover:text-gold transition-colors">${c.title}</h3>`;
+      el.addEventListener('click',()=>openCaseDetail(idx));
+      el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCaseDetail(idx);}});
+      grid.appendChild(el);
+    });
+  }
+  function openCaseDetail(idx){
+    const c=caseList[idx]; if(!c) return;
+    document.getElementById('c-title').textContent=c.title;
+    document.getElementById('c-customer').textContent=c.customer||'-';
+    document.getElementById('c-type').textContent=c.house_type||'整屋';
+    document.getElementById('c-style').textContent=c.style||'-';
+    document.getElementById('c-area').textContent=c.area||'-';
+    document.getElementById('c-series').textContent=c.series||'-';
+    document.getElementById('c-desc').textContent=c.description||'暂无方案说明';
+    document.getElementById('c-img').src=resolveImg(c.images);
+    cModal.classList.remove('hidden'); cModal.classList.add('flex'); document.body.style.overflow='hidden';
+  }
+  window.closeCaseDetail=function(){ cModal.classList.add('hidden'); cModal.classList.remove('flex'); document.body.style.overflow=''; };
+  const cClose=document.getElementById('c-close'); if(cClose) cClose.addEventListener('click',closeCaseDetail);
+  if(cModal) cModal.addEventListener('click',e=>{if(e.target===cModal)closeCaseDetail();});
+  async function caseInit(){
+    try{ const cases=await publicApi.cases(); renderCases(cases); }
+    catch(e){ console.error(e); const l=document.getElementById('case-loading'); if(l) l.textContent='案例加载失败，请稍后重试'; }
+  }
+
+  /* ============================================================
+   * NEWS（本地静态数据）
+   * ============================================================ */
+  const enterprise=[
+    {title:'TP 全屋家居新总部投产',date:'2026-08-10',cat:'企业新闻',img:'images/hero-living-hd.png',body:'历时两年建设的 TP 全屋家居智能制造新总部正式投产。园区引入柔性定制产线与全流程数字化品控，年产能提升 60%，标志着我们在原创设计与智造能力上迈入新阶段。'},
+    {title:'原创设计斩获国际奖项',date:'2026-07-28',cat:'企业新闻',img:'images/case-living.png',body:'TP「禧YUE」东方雅集系列在 2026 国际家居设计大奖中斩获「年度原创设计」。评委会认为该系列以当代语言重构东方生活美学，实现了传统意境与现代居住的融合。'},
+    {title:'全国门店突破 300 家',date:'2026-06-15',cat:'企业新闻',img:'images/hero-dining.png',body:'伴随西南、华南区域新店陆续开业，TP 全屋家居线下体验门店正式突破 300 家，覆盖全国主要城市核心商圈，让更多家庭可就近体验一站式全屋定制服务。'}
+  ];
+  const industry=[
+    {title:'2026 全屋定制消费趋势报告',date:'2026-08-05',cat:'行业资讯',img:'images/hero-dining.png',body:'报告显示，"整屋一体化设计 + 环保材质"成为 2026 年消费者决策的首要因素；同时，轻奢与新中式风格需求持续走高，年轻家庭更偏好可成长、可调整的模块化方案。'},
+    {title:'环保板材新国标解读',date:'2026-07-20',cat:'行业资讯',img:'images/case-living.png',body:'新版人造板甲醛释放限量标准进一步收紧。业内认为这将加速落后产能出清，具备自有智造与全链路品控的品牌将获得更大竞争优势。'},
+    {title:'智能家居如何与定制家具融合',date:'2026-06-30',cat:'行业资讯',img:'images/hero-living-hd.png',body:'从隐藏式灯带到感应收纳，定制家具正在成为全屋智能的载体。行业观点指出，真正的智能不是堆叠屏幕，而是让科技无声融入日常起居。'}
+  ];
+  const nModal=document.getElementById('news-modal');
+  function renderNews(list,wrap){
+    list.forEach(n=>{
+      const el=document.createElement('article');
+      el.className='news-card cursor-pointer card-hover group rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gold';
+      el.setAttribute('tabindex','0');el.setAttribute('role','button');
+      el.innerHTML=`<div class="aspect-[16/9] bg-ink overflow-hidden rounded-sm"><div class="w-full h-full transition-transform duration-500 group-hover:scale-105" style="background-image:url('${n.img}');background-size:cover;background-position:center;"></div></div>
+        <p class="mt-4 text-xs text-ink-soft">${n.cat} · ${n.date}</p>
+        <h3 class="font-serif text-lg mt-1 group-hover:text-gold transition-colors">${n.title}</h3>`;
+      el.addEventListener('click',()=>openNewsModal(n));
+      el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openNewsModal(n);}});
+      wrap.appendChild(el);
+    });
+  }
+  function openNewsModal(n){
+    document.getElementById('n-title').textContent=n.title;
+    document.getElementById('n-meta').textContent=`${n.cat} · ${n.date}`;
+    document.getElementById('n-body').textContent=n.body;
+    document.getElementById('n-img').style.backgroundImage=`url('${n.img}')`;
+    nModal.classList.remove('hidden'); nModal.classList.add('flex'); document.body.style.overflow='hidden';
+  }
+  window.closeNewsModal=function(){ nModal.classList.add('hidden'); nModal.classList.remove('flex'); document.body.style.overflow=''; };
+  const nClose=document.getElementById('n-close'); if(nClose) nClose.addEventListener('click',closeNewsModal);
+  if(nModal) nModal.addEventListener('click',e=>{if(e.target===nModal)closeNewsModal();});
+  function newsRender(){
+    renderNews(enterprise,document.getElementById('enterprise-grid'));
+    renderNews(industry,document.getElementById('industry-grid'));
+  }
+
+  /* ============================================================
+   * ABOUT（本地静态数据）
+   * ============================================================ */
+  const stores=[
+    {name:'TP 全屋家居 · 上海旗舰店',addr:'上海市 XX 区 XX 路 88 号',tel:'021-XXXX-XXXX',hours:'10:00 - 21:00'},
+    {name:'TP 全屋家居 · 广州体验店',addr:'广州市 XX 区 XX 大道 200 号',tel:'020-XXXX-XXXX',hours:'10:00 - 21:00'},
+    {name:'TP 全屋家居 · 佛山智造展厅',addr:'佛山市 XX 区智造园 1 号',tel:'0757-XXXX-XXXX',hours:'09:00 - 18:00'}
+  ];
+  function aboutRender(){
+    const sl=document.getElementById('store-list');
+    stores.forEach(s=>{
+      const el=document.createElement('div'); el.className='bg-white border border-line rounded-sm p-6 card-hover';
+      el.innerHTML=`<h3 class="font-serif text-lg">${s.name}</h3><p class="text-sm text-ink-soft mt-2">地址：${s.addr}</p><p class="text-sm text-ink-soft">电话：${s.tel}</p><p class="text-sm text-ink-soft">营业：${s.hours}</p>`;
+      sl.appendChild(el);
+    });
+    const ps=document.getElementById('p-store'); stores.forEach(s=>{const o=document.createElement('option');o.value=s.name;o.textContent=s.name;ps.appendChild(o);});
+    const pType=document.getElementById('p-type'); const pStoreWrap=document.getElementById('p-store-wrap');
+    if(pType) pType.addEventListener('change',()=>{ if(pStoreWrap) pStoreWrap.classList.toggle('hidden', pType.value!=='预约到店'); });
+    const apptForm=document.getElementById('appt-form');
+    if(apptForm) apptForm.addEventListener('submit',e=>{e.preventDefault();const ok=document.getElementById('appt-ok');if(ok)ok.classList.remove('hidden');e.target.reset();if(pStoreWrap)pStoreWrap.classList.add('hidden');});
+  }
+
+  /* ============================================================
+   * RECRUITMENT（本地静态数据）
+   * ============================================================ */
+  const social=[
+    {title:'全屋定制设计师',city:'上海 / 广州',type:'全职',exp:'3 年以上',duty:['负责客户全屋空间方案设计与效果图呈现','对接门店与工厂，跟进方案落地','参与系列化产品的研发提案'],req:['室内设计 / 环境艺术相关专业','熟练使用 3D Max、酷家乐等工具','具备良好审美与沟通能力']},
+    {title:'结构研发工程师',city:'佛山',type:'全职',exp:'5 年以上',duty:['负责定制家具结构与五金连接研发','输出 BOM 与生产图纸标准','协助产线解决工艺问题'],req:['机械 / 木作结构相关背景','熟悉板式家具制造工艺','严谨细致，有成本意识']},
+    {title:'品牌内容专员',city:'上海',type:'全职',exp:'2 年以上',duty:['策划并执行品牌内容与社媒运营','撰写产品故事与案例文案','协调拍摄与视觉物料产出'],req:['中文 / 传播 / 营销相关专业','文字功底强，有家居行业经验优先','热爱设计与生活方式']}
+  ];
+  const campus=[
+    {title:'设计管培生',city:'全国',type:'校招',exp:'应届',duty:['轮岗门店、设计、研发等核心部门','参与真实项目积累全链路经验','由资深导师一对一带教'],req:['2026 届本科及以上','设计 / 艺术类相关专业','踏实有热情，愿意从一线做起']},
+    {title:'智能制造储备干部',city:'佛山',type:'校招',exp:'应届',duty:['深入产线学习智造流程','参与精益生产与数字化改进','成长为现场管理骨干'],req:['机械 / 工业工程相关专业','逻辑清晰，有团队协作精神','能适应制造现场节奏']}
+  ];
+  const jModal=document.getElementById('job-modal');
+  function renderJob(j,wrap){
+    const el=document.createElement('div');
+    el.className='card-hover cursor-pointer group bg-white border border-line rounded-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold';
+    el.setAttribute('tabindex','0');el.setAttribute('role','button');
+    el.innerHTML=`<div><h3 class="font-serif text-lg group-hover:text-gold transition-colors">${j.title}</h3><p class="text-sm text-ink-soft mt-1">${j.city} · ${j.type} · ${j.exp}</p></div>
+      <span class="text-gold text-sm inline-flex items-center gap-1">查看 JD <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>`;
+    el.addEventListener('click',()=>openJob(j));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openJob(j);}});
+    wrap.appendChild(el);
+  }
+  function openJob(j){
+    document.getElementById('j-title').textContent=j.title;
+    document.getElementById('j-tag1').textContent=j.city;
+    document.getElementById('j-tag2').textContent=j.type;
+    document.getElementById('j-tag3').textContent=j.exp;
+    const d=document.getElementById('j-duty'); d.innerHTML=''; j.duty.forEach(x=>{const li=document.createElement('li');li.textContent=x;d.appendChild(li);});
+    const r=document.getElementById('j-req'); r.innerHTML=''; j.req.forEach(x=>{const li=document.createElement('li');li.textContent=x;r.appendChild(li);});
+    jModal.classList.remove('hidden'); jModal.classList.add('flex'); document.body.style.overflow='hidden';
+  }
+  window.closeJob=function(){ jModal.classList.add('hidden'); jModal.classList.remove('flex'); document.body.style.overflow=''; };
+  const jClose=document.getElementById('j-close'); if(jClose) jClose.addEventListener('click',closeJob);
+  if(jModal) jModal.addEventListener('click',e=>{if(e.target===jModal)closeJob();});
+  function recruitRender(){
+    social.forEach(j=>renderJob(j,document.getElementById('social-list')));
+    campus.forEach(j=>renderJob(j,document.getElementById('campus-list')));
+    const allJobs=[...social,...campus];
+    const sel=document.getElementById('a-job'); allJobs.forEach(j=>{const o=document.createElement('option');o.value=j.title;o.textContent=j.title;sel.appendChild(o);});
+    const applyForm=document.getElementById('apply-form');
+    if(applyForm) applyForm.addEventListener('submit',e=>{e.preventDefault();const ok=document.getElementById('apply-ok');if(ok)ok.classList.remove('hidden');e.target.reset();});
+  }
+
+  /* ============================================================
+   * ROUTER（#page 或 #page/sub，方案 A）
+   * ============================================================ */
+  const SECTIONS={home:'sec-home',products:'sec-products',cases:'sec-cases',news:'sec-news',about:'sec-about',recruitment:'sec-recruitment'};
+  const NAVMAP={home:'home',products:'products',cases:'products',news:'news',about:'about',recruitment:'recruitment'};
+  const KNOWN=Object.keys(SECTIONS);
+  function showSection(page,sub){
+    KNOWN.forEach(k=>{const el=document.getElementById(SECTIONS[k]); if(el) el.classList.toggle('hidden',k!==page);});
+    // 导航高亮
+    document.querySelectorAll('nav a[data-page]').forEach(a=>{
+      a.classList.toggle('text-gold', NAVMAP[page]===a.getAttribute('data-page'));
+    });
+    if(!sub) window.scrollTo(0,0);
+  }
+  function router(){
+    const raw=location.hash.replace(/^#/,'');
+    const [page,sub]=raw.split('/');
+    const target=KNOWN.includes(page)?page:'home';
+    showSection(target,sub);
+    if(sub){
+      requestAnimationFrame(()=>{
+        const t=document.getElementById(sub);
+        if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    }
+  }
+  window.addEventListener('hashchange',router);
+
+  /* ============================================================
+   * INIT（一次性渲染所有 section；路由只负责显隐与滚动）
+   * ============================================================ */
+  homeInit();
+  prodInit();
+  caseInit();
+  newsRender();
+  aboutRender();
+  recruitRender();
+  router();
+})();
+</script>
+<script src="js/chat.js"></script>
+</body>
+</html>

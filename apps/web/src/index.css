@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+  background: #faf8f5;
+  color: #1a1714;
+}
+
+/* 无障碍：焦点金环（UI/UX §8） */
+:focus-visible {
+  outline: 2px solid #b08d57;
+  outline-offset: 2px;
+}
+
+/* 组件类（对齐原型 prototype-frontend §style，UI/UX §3） */
+@layer components {
+  .nav-link {
+    @apply text-[15px] text-ink/80 hover:text-gold transition-colors duration-200 cursor-pointer;
+  }
+  .btn-gold {
+    @apply inline-flex items-center justify-center bg-gold text-white px-7 py-3 rounded-sm tracking-[0.15em] text-[15px] hover:bg-gold-soft transition-colors duration-200 cursor-pointer;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center border border-ink/30 text-ink px-7 py-3 rounded-sm tracking-[0.15em] text-[15px] hover:border-gold hover:text-gold transition-colors duration-200 cursor-pointer;
+  }
+  .eyebrow {
+    @apply text-gold text-xs tracking-[0.35em] uppercase font-medium;
+  }
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+  }
+  .chip {
+    @apply px-4 py-2 rounded-sm text-sm border border-line text-ink/70 hover:border-gold hover:text-gold transition-colors duration-200 cursor-pointer;
+  }
+  .chip-active {
+    @apply bg-ink text-white border-ink hover:text-white;
+  }
+  .section-title {
+    @apply font-serif text-3xl md:text-4xl font-semibold text-ink;
+  }
+  .input {
+    @apply w-full px-4 py-3 rounded-sm border border-line bg-white focus:outline-none focus:ring-2 focus:ring-gold text-sm;
+  }
+}
+
+/* 图片懒加载淡入 */
+.img-fade {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.img-fade.loaded {
+  opacity: 1;
+}

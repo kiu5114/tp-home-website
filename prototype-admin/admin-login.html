@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TP 全屋家居 · 后台登录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Noto Sans SC",-apple-system,"PingFang SC",sans-serif;background:#1A1714;color:#262626;min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#2b2620 0%,#1A1714 60%);}
+  .login-wrap{width:880px;max-width:94vw;height:560px;max-height:90vh;display:flex;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45);background:#fff;}
+  .login-left{width:46%;background:#1A1714;color:#FAF8F5;padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between;position:relative;}
+  .login-left::after{content:"";position:absolute;right:-1px;top:0;bottom:0;width:1px;background:linear-gradient(#B08D57,#B08D57);opacity:.4;}
+  .brand{font-family:"Noto Serif SC",serif;}
+  .brand-logo{font-size:30px;letter-spacing:.22em;color:#fff;font-weight:700;}
+  .brand-sub{font-size:15px;letter-spacing:.3em;color:#B08D57;margin-top:6px;}
+  .left-title{font-size:24px;font-weight:600;line-height:1.5;margin-top:auto;}
+  .left-desc{color:rgba(250,248,245,.6);font-size:13px;line-height:1.9;margin-top:14px;}
+  .left-foot{font-size:12px;color:rgba(250,248,245,.35);margin-top:24px;}
+  .login-right{flex:1;padding:56px 52px;display:flex;flex-direction:column;justify-content:center;}
+  .right-title{font-size:22px;font-weight:600;margin-bottom:6px;}
+  .right-sub{font-size:13px;color:#8c8c8c;margin-bottom:30px;}
+  .field{margin-bottom:20px;}
+  .field label{display:block;font-size:13px;color:#595959;margin-bottom:7px;}
+  .input{width:100%;height:44px;border:1px solid #d9d9d9;border-radius:8px;padding:0 14px;font-size:14px;outline:none;transition:.2s;background:#fff;}
+  .input:focus{border-color:#B08D57;box-shadow:0 0 0 2px rgba(176,141,87,.15);}
+  .row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:24px;color:#595959;}
+  .row label{display:flex;align-items:center;gap:6px;cursor:pointer;}
+  .link{color:#B08D57;cursor:pointer;}
+  .btn-login{width:100%;height:46px;border:none;border-radius:8px;background:#B08D57;color:#fff;font-size:15px;letter-spacing:.1em;cursor:pointer;transition:.2s;}
+  .btn-login:hover{background:#C9A875;}
+  .login-tip{margin-top:18px;font-size:12px;color:#bfbfbf;text-align:center;}
+  @media(max-width:680px){.login-left{display:none;}.login-right{padding:36px 28px;}}
+</style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-left">
+      <div class="brand">
+        <div class="brand-logo">TP</div>
+        <div class="brand-sub">全屋家居</div>
+      </div>
+      <div>
+        <div class="left-title">一站式全屋定制<br/>内容与线索管理平台</div>
+        <div class="left-desc">统一管理品牌内容、产品案例、新闻招聘与门店信息，<br/>高效跟进客户线索与招聘投递。</div>
+      </div>
+      <div class="left-foot">TP 全屋家居 · 后台管理系统 v1.0</div>
+    </div>
+    <div class="login-right">
+      <div class="right-title">后台登录</div>
+      <div class="right-sub">请输入管理员账号与密码</div>
+      <form id="loginForm" onsubmit="return doLogin(event)">
+        <div class="field">
+          <label>账号</label>
+          <input class="input" id="username" placeholder="请输入账号" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label>密码</label>
+          <input class="input" id="password" type="password" placeholder="请输入密码" autocomplete="current-password" />
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="remember" /> 记住我</label>
+          <span class="link" onclick="fillDemo()">填入演示账号</span>
+        </div>
+        <button class="btn-login" type="submit">登 录</button>
+      </form>
+      <div class="login-tip">演示账号：<b>admin / admin123</b>（后端运行时走真实登录）</div>
+    </div>
+  </div>
+
+<script src="js/api.js"></script>
+<script>
+  // 登录：优先调用后端 /api/admin/login；后端不可达时降级为演示登录（避免登录循环）
+  function fillDemo(){
+    document.getElementById('username').value='admin';
+    document.getElementById('password').value='admin123';
+  }
+  async function doLogin(e){
+    e.preventDefault();
+    const u=document.getElementById('username').value.trim();
+    const p=document.getElementById('password').value;
+    if(!u || !p){ alert('请输入账号和密码'); return false; }
+    const tip=document.querySelector('.login-tip');
+    try{
+      const res=await window.adminApi.login({username:u,password:p});
+      sessionStorage.setItem('tp_admin_token', res.access_token);
+      sessionStorage.setItem('tp_admin_name', res.name||u);
+      sessionStorage.setItem('tp_admin_role', res.role||'super_admin');
+      window.location.href='admin.html';
+    }catch(err){
+      // 后端已启动但账号/密码错误：明确提示，不重定向到演示模式
+      if(err && err.message && (err.message.includes('401') || err.message.includes('Unauthorized') || err.message.includes('Token'))){
+        alert('账号或密码错误，请重新输入。\n演示账号：admin / admin123');
+        return false;
+      }
+      // 后端未启动：降级为演示登录（仅用于静态原型预览，写操作会 401）
+      console.warn('[TP] 后端登录不可用，使用演示登录：', err.message);
+      if(tip) tip.textContent='后端未连接，已使用演示登录（写操作需启动后端）';
+      sessionStorage.setItem('tp_admin_token','demo');
+      sessionStorage.setItem('tp_admin_role','super_admin');
+      sessionStorage.setItem('tp_admin_name', u);
+      setTimeout(()=>{ window.location.href='admin.html'; }, 400);
+    }
+    return false;
+  }
+</script>
+</body>
+</html>

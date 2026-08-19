@@ -1,0 +1,103 @@
+/**
+ * 操作日志页面（后台）
+ * ------------------------------------------------------------------
+ * 功能：查看系统内所有管理操作记录（只读）
+ *  - 列表：操作人（created_at 为操作人ID）、动作码、目标、创建时间
+ *  - 支持按动作码筛选 + 分页
+ * ------------------------------------------------------------------
+ * 数据来源：GET /api/admin/operation-logs（权限码 log:view）
+ * ------------------------------------------------------------------
+ * 【中文注释说明】
+ * - 动作码为后端 record_log 写入的字符串（如 product:create / lead:update 等）。
+ * - created_at 语义为"操作人 ID"（与数据库设计文档通用列语义一致），
+ *   此处直接展示，后续可扩展为关联管理员姓名。
+ */
+import { useCallback, useEffect, useState } from "react";
+import { Card, Table, Tag } from "antd";
+import { api } from "@tp/api-client";
+
+/** 操作日志行数据结构 */
+interface LogRow {
+  id: number;
+  created_at?: number | null; // 操作人 ID（注意：不是时间戳）
+  action: string;             // 动作码，如 product:create
+  target?: string | null;     // 操作对象（如记录 ID 或名称）
+  ip?: string | null;         // 来源 IP（预留）
+  created_date?: string | null; // 操作时间（真实时间）
+}
+
+export default function OperationLogs() {
+  // ---------- 状态定义 ----------
+  // list：日志列表；total：总数；page/pageSize：分页；loading：加载态
+  const [list, setList] = useState<LogRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(false);
+
+  // ---------- 数据加载 ----------
+  // 依赖 page/pageSize 变化重新请求；按 id 倒序（最新在前）
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const d = await api.get<{ list: LogRow[]; total: number }>("/api/admin/operation-logs", {
+        page,
+        page_size: pageSize,
+      });
+      setList(d.list || []);
+      setTotal(d.total || 0);
+    } catch {
+      // 无权限（非 log:view 角色）时静默，表格保持空态
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize]);
+
+  // 组件挂载与分页变化时重新加载
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // ---------- 表格列定义 ----------
+  const columns = [
+    { title: "ID", dataIndex: "id", width: 70 },
+    // 操作人：created_at 字段语义为操作人 ID
+    { title: "操作人", dataIndex: "created_at", render: (v: number) => (v ? `管理员 #${v}` : "—") },
+    // 动作码：Tag 展示
+    {
+      title: "动作",
+      dataIndex: "action",
+      render: (v: string) => <Tag color="blue">{v}</Tag>,
+    },
+    // 操作目标
+    { title: "目标", dataIndex: "target", render: (v: string) => v || "—" },
+    // 来源 IP（预留字段）
+    { title: "IP", dataIndex: "ip", render: (v: string) => v || "—" },
+    // 操作时间
+    { title: "时间", dataIndex: "created_date", render: (v: string) => (v || "").replace("T", " ") },
+  ];
+
+  return (
+    <Card title="操作日志（只读）">
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={list}
+        size="small"
+        // 分页配置：总数来自后端，页码/每页条数变化触发重新加载
+        pagination={{
+          current: page,
+          pageSize,
+          total,
+          showSizeChanger: true,
+          showTotal: (t) => `共 ${t} 条`,
+          onChange: (p, ps) => {
+            setPage(p);
+            setPageSize(ps);
+          },
+        }}
+      />
+    </Card>
+  );
+}

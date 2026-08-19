@@ -1,0 +1,16 @@
+{
+  "name": "tp-home-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TP 全屋家居 · 前台 web + 后台 admin + 共享 api-client（monorepo）",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm -w apps/web run dev",
+    "dev:admin": "npm -w apps/admin run dev",
+    "build:web": "npm -w apps/web run build",
+    "build:admin": "npm -w apps/admin run build"
+  }
+}
