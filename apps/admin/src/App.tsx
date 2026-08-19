@@ -1,5 +1,5 @@
 /**
- * 后台应用入口 + 整体布局（含 RBAC 菜单级过滤）
+ * 后台应用入口 + 整体布局（含 RBAC 菜单级过滤 + 路由懒加载分包）
  * ------------------------------------------------------------------
  * 功能：
  *  1. 登录态守卫：无 token 一律跳转 /login
@@ -14,24 +14,31 @@
  * - MENU_DEFS：菜单 → 所需权限码映射；超级管理员权限含通配 *，全部可见。
  * - hasPerm()：判断当前用户是否拥有某权限码（* 通配放行）。
  * - 菜单项在渲染前先 filter，实现"低权限角色看不到无权菜单"。
+ * - 【生产优化】所有页面组件用 React.lazy 按路由分包：
+ *   Vite 会把每个页面拆成独立 chunk（如 ProductManage-xxx.js），
+ *   首屏只加载 Login + 布局，进入页面时才加载对应 chunk，降低主包体积。
  */
+import { lazy, Suspense, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { Layout, Menu, Avatar, Dropdown, Drawer } from "antd";
+import { Layout, Menu, Avatar, Dropdown, Drawer, Spin } from "antd";
 import { getAccessToken, clearTokens } from "@tp/api-client";
 import Login from "./Login";
-import Dashboard from "./Dashboard";
-import HomeConfig from "./pages/HomeConfig";
-import AboutManage from "./pages/AboutManage";
-import Stores from "./pages/Stores";
-import SiteConfig from "./pages/SiteConfig";
-import ProductManage from "./pages/ProductManage";
-import CaseManage from "./pages/CaseManage";
-import NewsManage from "./pages/NewsManage";
-import JobManage from "./pages/JobManage";
-import LeadsManage from "./pages/LeadsManage";
-import OperationLogs from "./pages/OperationLogs";
-import SystemManage from "./pages/SystemManage";
+
+// ---------- 路由懒加载（按页面分包，生产优化） ----------
+// 说明：lazy(() => import(...)) 让 Vite 以动态 import 为界拆分 chunk；
+//       Suspense fallback 在 chunk 加载期间显示居中 loading。
+const Dashboard = lazy(() => import("./Dashboard"));
+const HomeConfig = lazy(() => import("./pages/HomeConfig"));
+const AboutManage = lazy(() => import("./pages/AboutManage"));
+const Stores = lazy(() => import("./pages/Stores"));
+const SiteConfig = lazy(() => import("./pages/SiteConfig"));
+const ProductManage = lazy(() => import("./pages/ProductManage"));
+const CaseManage = lazy(() => import("./pages/CaseManage"));
+const NewsManage = lazy(() => import("./pages/NewsManage"));
+const JobManage = lazy(() => import("./pages/JobManage"));
+const LeadsManage = lazy(() => import("./pages/LeadsManage"));
+const OperationLogs = lazy(() => import("./pages/OperationLogs"));
+const SystemManage = lazy(() => import("./pages/SystemManage"));
 
 const { Sider, Header, Content } = Layout;
 
@@ -183,9 +190,10 @@ function AdminLayout() {
           </Dropdown>
         </Header>
 
-        {/* ===== 内容区：路由出口 ===== */}
+        {/* ===== 内容区：路由出口（懒加载 chunk 加载期间显示 Spin） ===== */}
         <Content style={{ margin: 16 }}>
-          <Routes>
+          <Suspense fallback={<Spin style={{ display: "block", margin: "80px auto" }} />}>
+            <Routes>
             {/* 看板（ECharts 趋势图 + 统计卡） */}
             <Route path="/dashboard" element={<Dashboard />} />
             {/* 首页配置：轮播 + 品牌亮点 */}
@@ -212,7 +220,8 @@ function AdminLayout() {
             <Route path="/system" element={<SystemManage />} />
             {/* 未匹配路由 → 回看板 */}
             <Route path="*" element={<Navigate to="/dashboard" />} />
-          </Routes>
+            </Routes>
+          </Suspense>
         </Content>
       </Layout>
     </Layout>

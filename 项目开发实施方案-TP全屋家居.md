@@ -3,7 +3,7 @@
 > 文档性质：项目开发实施方案（Plan / 非代码）
 > 编写日期：2026-08-19
 > 适用范围：前台展示系统（web）+ 后台管理系统（admin）+ FastAPI 后端（backend）
-> 状态：**执行中** —— 用户已确认（2026-08-19），阶段 0/1/2/3/4 全部完成并通过验收（待整体验收与部署）
+> 状态：**✅ 全部完成** —— 阶段 0-4 + 整体验收（PRD §12）+ 生产化优化（admin 分包、PostgreSQL 切换）已于 2026-08-19 全部完成，代码已推送 GitHub（kiu5114/tp-home-website）
 
 ---
 
@@ -250,7 +250,9 @@
 - 测试与验收（PRD §12 功能/非功能清单）；部署文档 + Dockerfile/Nginx 骨架。
 - 验收：PRD §12 全量通过；生产迁移脚本就绪（SQLite→PostgreSQL 仅骨架，生产配置后续）。
 
-> **阶段 4 执行记录（2026-08-19）**：✅ 看板升级为 ECharts 三折线趋势图（在线留言蓝/预约到店金/招聘投递绿，UI/UX §3.7）+ 6 统计卡 + 待处理入口跳转；✅ RBAC 菜单级覆盖：App.tsx 按登录用户 permissions 过滤侧栏菜单（无查看权限不显示），实测招聘专员仅见看板/招聘/门店，无权接口 403；✅ 系统管理四 Tab（管理员/角色/权限字典/部门，权限多选、超级管理员角色保护）；✅ 操作日志页（只读+分页）；✅ 响应式：前台移动端汉堡菜单、后台 Sider breakpoint 折叠 + 移动端 Drawer；✅ 部署骨架：backend/Dockerfile + .dockerignore、deploy/docker-compose.yml（api+nginx+数据卷）、nginx.conf（SPA 回退+API/uploads 反代）、部署文档.md；✅ 修复：PermissionOut/RoleOut/AdminOut 手写 schema 补 from_attributes=True（pydantic v2.13 下 model_validate(ORM) 报 500），PermissionOut 用 validation_alias 映射 group_→group。三服务运行（web:5173 / admin:5174 / api:8000），web/admin 构建成功（admin 主 chunk 2.35MB 含 ECharts，后续按需分包）。
+> **阶段 4 执行记录（2026-08-19）**：✅ 看板升级为 ECharts 三折线趋势图（在线留言蓝/预约到店金/招聘投递绿，UI/UX §3.7）+ 6 统计卡 + 待处理入口跳转；✅ RBAC 菜单级覆盖：App.tsx 按登录用户 permissions 过滤侧栏菜单（无查看权限不显示），实测招聘专员仅见看板/招聘/门店，无权接口 403；✅ 系统管理四 Tab（管理员/角色/权限字典/部门，权限多选、超级管理员角色保护）；✅ 操作日志页（只读+分页）；✅ 响应式：前台移动端汉堡菜单、后台 Sider breakpoint 折叠 + 移动端 Drawer；✅ 部署骨架：backend/Dockerfile + .dockerignore、deploy/docker-compose.yml（api+nginx+数据卷）、nginx.conf（SPA 回退+API/uploads 反代）、部署文档.md；✅ 修复：PermissionOut/RoleOut/AdminOut 手写 schema 补 from_attributes=True（pydantic v2.13 下 model_validate(ORM) 报 500），PermissionOut 用 validation_alias 映射 group_→group。
+
+> **收尾与生产化优化记录（2026-08-19 追加）**：✅ **PRD §12 整体验收**：功能 6/6、非功能 5/6（登录限流为 PRD Q5 建议项未实现）、上线清单生产项就绪（PG 切换+迁移、超管改密、HTTPS/OSS 为部署项），详见 `PRD12-验收报告.md`；✅ **admin 生产优化**：路由 React.lazy 分包（12 个页面级 chunk）+ ECharts 按需引入（echarts/core 仅注册折线图）+ vite manualChunks 拆分 vendor（react 160KB / antd 934KB / echarts 537KB），主业务包 2.37MB→65KB；✅ **PostgreSQL 切换**：requirements 加 `psycopg[binary]`、Alembic 初始迁移已生成（20 表，空库实测 `upgrade head` 通过，alembic.ini 中文注释改 ASCII 修复 Windows GBK 编码问题）、docker-compose 含可选 postgres 服务、部署文档更新。三服务运行正常（web:5173 / admin:5174 / api:8000）。
 
 ---
 

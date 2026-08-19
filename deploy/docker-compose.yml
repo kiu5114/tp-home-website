@@ -1,10 +1,12 @@
 # =====================================================================
 # TP 全屋家居 · docker-compose 编排（部署骨架）
 # ---------------------------------------------------------------------
-# 功能：一键启动 后端(api) + 前端网关(nginx)
+# 功能：一键启动 后端(api) + 前端网关(nginx)（+ 可选 PostgreSQL）
 # 说明：
-#  - api：FastAPI 后端，数据卷持久化 uploads 与 SQLite
-#  - nginx：网关，托管 web/admin 静态资源 + 反向代理 /api、/uploads
+#  - api   ：FastAPI 后端；默认 SQLite（数据卷持久化），
+#            如需 PostgreSQL 取消注释 postgres 服务并把 api 的
+#            DATABASE_URL 改为 postgres 连接串（见下方注释）。
+#  - nginx ：网关，托管 web/admin 静态资源 + 反向代理 /api、/uploads
 #  - web/admin 前端需先执行 npm run build:web / build:admin 生成 dist
 # 用法：
 #   1. cd 项目根目录
@@ -21,16 +23,38 @@ services:
     container_name: tp-home-api
     # 后端进程崩溃时自动重启
     restart: unless-stopped
-    # 通过环境变量把 SQLite 定位到数据卷（database.py 读取 DATABASE_URL）
+    # 通过环境变量指定数据库（database.py 读取 DATABASE_URL）
     environment:
+      # 默认：SQLite（开发/中小规模，数据落 /app/data 数据卷）
       - DATABASE_URL=sqlite:////app/data/tp_home.db
-    # 上传目录 + SQLite 数据库持久化（避免容器重建丢数据）
+      # 【生产推荐】切换 PostgreSQL：取消下行注释并启停 postgres 服务
+      # - DATABASE_URL=postgresql+psycopg://tp:tp_secret@postgres:5432/tp_home
+    # 上传目录 + 数据库持久化（避免容器重建丢数据）
     volumes:
       - tp_uploads:/app/uploads      # 上传图片/文件
-      - tp_db:/app/data              # SQLite 数据文件
+      - tp_db:/app/data              # SQLite 数据文件（用 PG 时可不挂载）
     # 后端只对网关可见，不直接对外暴露端口（由 nginx 反代）
     expose:
       - "8000"
+    # 使用 PostgreSQL 时启用该依赖（等待 PG 就绪）
+    # depends_on:
+    #   - postgres
+
+  # -------- 可选：PostgreSQL 数据库服务 --------
+  # 启用方式：取消本服务注释 + api.environment 中切换 DATABASE_URL
+  # 首次启动后执行迁移：docker compose -f deploy/docker-compose.yml run --rm api alembic upgrade head
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: tp-home-pg
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: tp
+  #     POSTGRES_PASSWORD: tp_secret   # 生产务必更换
+  #     POSTGRES_DB: tp_home
+  #   volumes:
+  #     - tp_pg:/var/lib/postgresql/data
+  #   expose:
+  #     - "5432"
 
   # -------- 前端 + 网关服务 --------
   nginx:
@@ -52,3 +76,4 @@ services:
 volumes:
   tp_uploads:
   tp_db:
+  # tp_pg:   # PostgreSQL 数据卷（启用 PG 时取消注释）

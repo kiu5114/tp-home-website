@@ -9,17 +9,25 @@
  * ------------------------------------------------------------------
  * 数据来源：GET /api/admin/dashboard（后台路由，需登录）
  * ------------------------------------------------------------------
- * 【中文注释说明】
- * - 本组件使用 echarts-for-react 封装，option 对象即 ECharts 配置。
- * - 趋势图 x 轴为日期（MM-DD），三条 series 分别取 data.trend[].online_message
- *   / appointment_to_store / job_application 字段。
- * - 统计卡使用 AntD Statistic；待处理入口使用 Card + 数字徽标。
+ * 【按需引入说明（生产优化）】
+ * - 不再 `import echarts` 全量包，而是用 `echarts/core` 仅注册折线图
+ *   所需的 LineChart、Tooltip、Legend、Grid 组件与 Canvas 渲染器，
+ *   使 echarts 体积从 ~1MB 降到 ~400KB，且随本页 chunk 懒加载。
+ * - echarts-for-react 提供 `lib/core` 入口，可传入自定义 echarts 实例。
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Card, Statistic, Spin } from "antd";
-import ReactECharts from "echarts-for-react";
+// echarts/core：按需注册，避免全量引入（生产优化）
+import * as echarts from "echarts/core";
+import { LineChart } from "echarts/charts";           // 仅折线图
+import { TooltipComponent, LegendComponent, GridComponent } from "echarts/components"; // 提示/图例/网格
+import { CanvasRenderer } from "echarts/renderers";    // Canvas 渲染
+import ReactEChartsCore from "echarts-for-react/lib/core"; // core 版封装（可传自定义实例）
 import { api } from "@tp/api-client";
+
+// 注册折线图所需模块（只此一次）
+echarts.use([LineChart, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer]);
 
 /** 看板接口返回的数据结构（与后端 /api/admin/dashboard 对齐） */
 interface DashboardData {
@@ -148,8 +156,8 @@ export default function Dashboard() {
 
       {/* ===== ECharts 近 7 天趋势图 ===== */}
       <Card title="近 7 天趋势（在线留言 / 预约到店 / 招聘投递）" style={{ marginTop: 16 }}>
-        {/* ReactECharts：echarts-for-react 封装组件；option 为图表配置；style 控制高度 */}
-        <ReactECharts option={chartOption} style={{ height: 320 }} notMerge />
+        {/* ReactEChartsCore：core 版封装；传入按需注册的 echarts 实例；option 为图表配置 */}
+        <ReactEChartsCore echarts={echarts} option={chartOption} style={{ height: 320 }} notMerge />
       </Card>
 
       {/* ===== 待处理入口卡 ===== */}
