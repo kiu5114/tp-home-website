@@ -70,20 +70,20 @@ def make_crud_router(
         page: int = Query(1, ge=1),
         page_size: int = Query(10, ge=1, le=100),
         search: str | None = None,
-        show_disabled: int = Query(0, description="1 显示禁用项"),
+        show_disabled: int = Query(0, description="1 显示全部（含禁用项）"),
     ):
-        data = paginate(
-            db,
-            Model,
-            Out,
-            is_activate=0 if show_disabled else 1,
-            search=search,
-            search_fields=search_fields,
-            page=page,
-            page_size=page_size,
-            order_by=default_order,
+        # show_disabled=1 → 不过滤（显示全部，便于后台管理查看禁用数据）
+        # show_disabled=0 → 仅显示 is_activate=1（前台/默认启用态）
+        # 注意：原写法 is_activate=0 if show_disabled else 1 语义反了——
+        # 传 show_disabled=1 时实际查的是"仅禁用项"，导致新增数据查不到。
+        kwargs = dict(
+            db=db, Model=Model, Out=Out,
+            search=search, search_fields=search_fields,
+            page=page, page_size=page_size, order_by=default_order,
         )
-        return ok(data)
+        if not show_disabled:
+            kwargs["is_activate"] = 1
+        return ok(paginate(**kwargs))
 
     @router.get("/{item_id}", dependencies=[Depends(require_perm(f"{perm}:view"))])
     def get_item(item_id: int, db: DbSession):
