@@ -254,6 +254,10 @@
 
 > **收尾与生产化优化记录（2026-08-19 追加）**：✅ **PRD §12 整体验收**：功能 6/6、非功能 5/6（登录限流为 PRD Q5 建议项未实现）、上线清单生产项就绪（PG 切换+迁移、超管改密、HTTPS/OSS 为部署项），详见 `PRD12-验收报告.md`；✅ **admin 生产优化**：路由 React.lazy 分包（12 个页面级 chunk）+ ECharts 按需引入（echarts/core 仅注册折线图）+ vite manualChunks 拆分 vendor（react 160KB / antd 934KB / echarts 537KB），主业务包 2.37MB→65KB；✅ **PostgreSQL 切换**：requirements 加 `psycopg[binary]`、Alembic 初始迁移已生成（20 表，空库实测 `upgrade head` 通过，alembic.ini 中文注释改 ASCII 修复 Windows GBK 编码问题）、docker-compose 含可选 postgres 服务、部署文档更新。三服务运行正常（web:5173 / admin:5174 / api:8000）。
 
+> **后续修复与数据约定（2026-08-19 晚追加）**：
+> 1. ✅ **修复：后台 CRUD 列表 `show_disabled` 语义反转**（提交 `6e5adba`）：`crud_utils.py` 原写法 `is_activate=0 if show_disabled else 1` 语义反了——前端传 `show_disabled=1` 想"显示全部"，实际查的是"仅 is_activate=0 的禁用项"，导致后台新增数据（产品/案例/招聘/新闻/角色 5 个管理页）列表空白。修复后：`show_disabled=1` → 不过滤（显示全部），`show_disabled=0` → 只查 `is_activate=1`。curl 实测 5 路由全部返回数据。
+> 2. ✅ **产品排序值唯一化**：seed 默认所有产品 `sort_order=1` 导致前台顺序依赖 id 兜底（`ORDER BY sort_order, id`），已将 4 个产品改为互不重复的 1/2/3/4（BY-001=1、RWB-001=2、RYC-001=3、BY-002=4）。**约定：新增产品时排序值建议取当前最大值 +1，与"数字越小越靠前"语义配套。**
+
 ---
 
 ## 9. 验收对齐（映射 PRD §12）

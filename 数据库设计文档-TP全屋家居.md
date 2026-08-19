@@ -107,6 +107,7 @@ PRD §9.2 仅列出实体名、未给字段的 8 个，由架构师依据功能 
 | `is_activate` 默认激活 | `1` | `1` |
 | 业务 `status` 默认 | 见各表（上线/启用/`未处理` 等） | 同左 |
 | 排序默认 | `0` | `0` |
+| `sort_order` 排序约定 | 升序，数字小在前；**同值按 id 兜底**（如 `ORDER BY sort_order, id`）；建议新增时取当前最大值 +1，避免多条记录同值导致顺序依赖 id | 同左 |
 | `created_date`/`updated_date` 默认 | `CURRENT_TIMESTAMP` | `now()` |
 | `created_at`/`updated_at` 默认 | `NULL`（由应用写入用户ID） | `NULL` |
 
@@ -248,7 +249,7 @@ PRD §9.2 仅列出实体名、未给字段的 8 个，由架构师依据功能 
 | images | TEXT | JSONB | — | 是 | NULL | 其它图片 URL（JSON 串数组） |
 | status | TINYINT | SMALLINT | — | 否 | 0 | 发布状态：0 草稿/1 上架/2 下架（与 is_activate 共存） |
 | is_top | TINYINT | SMALLINT | — | 否 | 0 | 是否置顶（0/1） |
-| sort_order | INTEGER | INT | — | 否 | 0 | 排序值 |
+| sort_order | INTEGER | INT | — | 否 | 0 | 排序值（升序、数字小在前；同值按 id 兜底，建议新增取当前最大+1） |
 | is_activate | TINYINT | SMALLINT | — | 否 | 1 | （通用列）0 禁用/1 激活 |
 | created_at | INTEGER | INT | FK→Admin | 是 | NULL | （通用列）创建人 |
 | created_date | DATETIME | TIMESTAMPTZ | — | 否 | now | （通用列）创建时间 |
