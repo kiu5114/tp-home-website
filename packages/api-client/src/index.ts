@@ -92,6 +92,12 @@ export const api = {
   post: <T = any>(url: string, data?: any): Promise<T> => http.post(url, data).then((r: any) => r),
   put: <T = any>(url: string, data?: any): Promise<T> => http.put(url, data).then((r: any) => r),
   del: <T = any>(url: string): Promise<T> => http.delete(url).then((r: any) => r),
+  /** multipart 文件上传：Content-Type 由浏览器自动设置 boundary。 */
+  upload: <T = any>(url: string, file: File, field = "file"): Promise<T> => {
+    const fd = new FormData();
+    fd.append(field, file);
+    return http.post(url, fd).then((r: any) => r);
+  },
 };
 
 /** SEED 兜底：请求失败时返回本地静态数据（离线可用，UI/UX §7.1）。 */

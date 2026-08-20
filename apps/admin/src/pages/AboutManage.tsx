@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Card, Form, Input, InputNumber, Modal, Popconfirm, Table, Tabs, Tag, message } from "antd";
-import { api } from "@tp/api-client";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { api, API_BASE } from "@tp/api-client";
 
 interface Row {
   id: number;
@@ -10,6 +12,71 @@ interface Row {
 /** 关于页（AboutPage，slug 唯一，内容富文本占位） */
 function AboutPagesPanel() {
   const [list, setList] = useState<Row[]>([]);
+
+  const quillModules = useMemo(() => {
+    function uploadImage(this: any) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/jpeg,image/png,image/webp";
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        try {
+          const res: any = await api.upload("/api/admin/upload", file);
+          const quill = this.quill;
+          const range = quill.getSelection(true);
+          quill.insertEmbed(range.index, "image", API_BASE + res.url);
+          quill.setSelection(range.index + 1);
+        } catch (e: any) {
+          message.error(e?.message || "图片上传失败");
+        }
+      };
+      input.click();
+    }
+
+    return {
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, 4, 5, 6, false] }],
+          [{ size: ["small", false, "large", "huge"] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ["link", "image"],
+          ["clean"],
+        ],
+        handlers: {
+          image: uploadImage,
+        },
+      },
+    };
+  }, []);
+
+  const quillFormats = [
+    "header",
+    "size",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "color",
+    "background",
+    "align",
+    "list",
+    "bullet",
+    "link",
+    "image",
+  ];
+
+  // 数据库存相对路径，编辑器预览需要完整 URL
+  const relToAbs = (html?: string | null) =>
+    html ? html.replace(/src="\/uploads\//g, `src="${API_BASE}/uploads/`) : "";
+  const absToRel = (html?: string | null) => {
+    if (!html) return "";
+    const escaped = API_BASE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return html.replace(new RegExp(`${escaped}/uploads/`, "g"), "/uploads/");
+  };
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
@@ -37,12 +104,13 @@ function AboutPagesPanel() {
   }
   function openEdit(r: Row) {
     setEditing(r);
-    form.setFieldsValue({ ...r });
+    form.setFieldsValue({ ...r, content: relToAbs(r.content) });
     setModalOpen(true);
   }
   async function save() {
     const v = await form.validateFields();
     try {
+      v.content = absToRel(v.content);
       if (editing) await api.put(`/api/admin/about-pages/${editing.id}`, v);
       else await api.post("/api/admin/about-pages", v);
       message.success("保存成功");
@@ -82,11 +150,25 @@ function AboutPagesPanel() {
   return (
     <Card title="关于页内容（about_tp / brand / history）" extra={<Button type="primary" onClick={openCreate}>新增页面</Button>}>
       <Table rowKey="id" loading={loading} columns={columns} dataSource={list} pagination={false} size="small" />
-      <Modal title={editing ? "编辑关于页" : "新增关于页"} open={modalOpen} onOk={save} onCancel={() => setModalOpen(false)} destroyOnClose>
+      <Modal
+        title={editing ? "编辑关于页" : "新增关于页"}
+        open={modalOpen}
+        onOk={save}
+        onCancel={() => setModalOpen(false)}
+        destroyOnClose
+        width={720}
+      >
         <Form form={form} layout="vertical">
           <Form.Item name="slug" label="标识（如 about_tp）" rules={[{ required: true, message: "请输入 slug" }]}><Input /></Form.Item>
           <Form.Item name="title" label="标题" rules={[{ required: true, message: "请输入标题" }]}><Input /></Form.Item>
-          <Form.Item name="content" label="内容（支持 HTML，富文本后续接入）"><Input.TextArea rows={6} /></Form.Item>
+          <Form.Item
+            name="content"
+            label="内容（富文本）"
+            getValueFromEvent={(value) => value}
+            getValueProps={(value) => ({ value: value || "" })}
+          >
+            <ReactQuill theme="snow" modules={quillModules} formats={quillFormats} style={{ height: 320 }} />
+          </Form.Item>
         </Form>
       </Modal>
     </Card>
