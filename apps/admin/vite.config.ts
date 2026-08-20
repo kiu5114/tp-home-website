@@ -25,6 +25,19 @@ export default defineConfig({
     host: true,
     port: 5174,
   },
+  // 预优化声明：把 ECharts 按需引入的子模块预先在 dev 启动时打包好，
+  // 避免运行时 Vite 发现"新依赖"触发的 re-optimize（清理 deps_temp 时
+  // 在 Windows 下被 safe-delete 拦截会导致 dev server 崩溃）。
+  // 配合 Dashboard.tsx 的 `echarts/core + LineChart + ...` 按需注册使用。
+  optimizeDeps: {
+    include: [
+      "echarts/core",
+      "echarts/charts",
+      "echarts/components",
+      "echarts/renderers",
+      "echarts-for-react/lib/core",
+    ],
+  },
   build: {
     // 手动分包：把大型第三方库拆为独立 chunk（利于浏览器长缓存 + 减小首屏主包）
     rollupOptions: {

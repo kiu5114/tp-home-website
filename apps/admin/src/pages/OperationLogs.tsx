@@ -2,15 +2,15 @@
  * 操作日志页面（后台）
  * ------------------------------------------------------------------
  * 功能：查看系统内所有管理操作记录（只读）
- *  - 列表：操作人（created_at 为操作人ID）、动作码、目标、创建时间
+ *  - 列表：操作人、操作行为、目标、操作时间
  *  - 支持按动作码筛选 + 分页
  * ------------------------------------------------------------------
  * 数据来源：GET /api/admin/operation-logs（权限码 log:view）
  * ------------------------------------------------------------------
  * 【中文注释说明】
  * - 动作码为后端 record_log 写入的字符串（如 product:create / lead:update 等）。
- * - created_at 语义为"操作人 ID"（与数据库设计文档通用列语义一致），
- *   此处直接展示，后续可扩展为关联管理员姓名。
+ * - 操作人姓名由后端关联 Admin 表后通过 operator_name 返回，不再展示原始 ID。
+ * - 操作时间由后端统一格式化为东八区（Asia/Shanghai）字符串。
  */
 import { useCallback, useEffect, useState } from "react";
 import { Card, Table, Tag } from "antd";
@@ -23,7 +23,8 @@ interface LogRow {
   action: string;             // 动作码，如 product:create
   target?: string | null;     // 操作对象（如记录 ID 或名称）
   ip?: string | null;         // 来源 IP（预留）
-  created_date?: string | null; // 操作时间（真实时间）
+  created_date?: string | null; // 操作时间（已格式化为东八区字符串）
+  operator_name?: string | null; // 操作人姓名（后端关联 Admin 表返回）
 }
 
 export default function OperationLogs() {
@@ -61,11 +62,11 @@ export default function OperationLogs() {
   // ---------- 表格列定义 ----------
   const columns = [
     { title: "ID", dataIndex: "id", width: 70 },
-    // 操作人：created_at 字段语义为操作人 ID
-    { title: "操作人", dataIndex: "created_at", render: (v: number) => (v ? `管理员 #${v}` : "—") },
-    // 动作码：Tag 展示
+    // 操作人：后端已关联 Admin 表返回 operator_name
+    { title: "操作人", dataIndex: "operator_name", render: (v: string) => v || "—" },
+    // 操作行为：Tag 展示
     {
-      title: "动作",
+      title: "操作行为",
       dataIndex: "action",
       render: (v: string) => <Tag color="blue">{v}</Tag>,
     },
@@ -73,8 +74,8 @@ export default function OperationLogs() {
     { title: "目标", dataIndex: "target", render: (v: string) => v || "—" },
     // 来源 IP（预留字段）
     { title: "IP", dataIndex: "ip", render: (v: string) => v || "—" },
-    // 操作时间
-    { title: "时间", dataIndex: "created_date", render: (v: string) => (v || "").replace("T", " ") },
+    // 操作时间：后端已格式化为东八区字符串
+    { title: "时间", dataIndex: "created_date", render: (v: string) => v || "—" },
   ];
 
   return (
