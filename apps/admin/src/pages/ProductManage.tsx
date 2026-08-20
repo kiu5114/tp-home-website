@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Card, Form, Input, InputNumber, Modal, Popconfirm, Select, Switch, Table, Tabs, Tag, Upload, message } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, ScissorOutlined } from "@ant-design/icons";
 import { api } from "@tp/api-client";
+import ImageCropper, { fileToObjectURL } from "../components/ImageCropper";
 
 const API_BASE = (import.meta as any).env?.VITE_API_BASE || "http://127.0.0.1:8000";
 function assetUrl(u?: string | null): string {
@@ -14,14 +15,19 @@ interface Row {
   [k: string]: any;
 }
 
-/* ===== 通用图片上传控件（单图） ===== */
-function ImageUpload({ value, onChange, height = 96 }: { value?: string; onChange?: (v: string) => void; height?: number }) {
+/* ===== 通用图片上传控件（单图，支持上传后裁剪） ===== */
+function ImageUpload({ value, onChange, height = 96, aspect, crop = true }: { value?: string; onChange?: (v: string) => void; height?: number; aspect?: number; crop?: boolean }) {
   const [up, setUp] = useState(false);
-  async function doUpload(file: File) {
+  // 裁剪 modal 状态
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [pendingFileName, setPendingFileName] = useState<string>("");
+
+  async function uploadBlob(blob: Blob, fileName: string) {
     setUp(true);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      // 统一改为 png（裁剪后输出）
+      fd.append("file", new File([blob], fileName.replace(/\.\w+$/, ".png"), { type: "image/png" }));
       const d = await api.post<{ url: string }>("/api/admin/upload", fd);
       onChange?.(d.url);
       message.success("上传成功");
@@ -31,21 +37,81 @@ function ImageUpload({ value, onChange, height = 96 }: { value?: string; onChang
       setUp(false);
     }
   }
+
+  async function handleFile(file: File) {
+    if (!crop) {
+      // 不裁剪：直接上传原图
+      await uploadBlob(file, file.name);
+      return;
+    }
+    // 进入裁剪流程
+    const url = fileToObjectURL(file);
+    setPendingFileName(file.name);
+    setCropSrc(url);
+  }
+
+  async function handleCropConfirm(blob: Blob) {
+    const src = cropSrc!;
+    const name = pendingFileName || "image.png";
+    if (src) URL.revokeObjectURL(src);
+    setCropSrc(null);
+    setPendingFileName("");
+    await uploadBlob(blob, name);
+  }
+
+  function handleCropCancel() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    setPendingFileName("");
+  }
+
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-start gap-3 flex-wrap">
       {value && (
         <img src={assetUrl(value)} alt="preview" style={{ width: height * 1.4, height, objectFit: "cover", borderRadius: 4, border: "1px solid #eee" }} />
       )}
-      <Upload accept="image/*" showUploadList={false} beforeUpload={(f) => { doUpload(f); return false; }}>
+      <Upload accept="image/*" showUploadList={false} beforeUpload={(f) => { handleFile(f); return false; }}>
         <Button icon={<UploadOutlined />} loading={up}>{value ? "更换图片" : "上传图片"}</Button>
       </Upload>
+      {crop && (
+        <Button
+          type="link"
+          icon={<ScissorOutlined />}
+          disabled={!value}
+          title="对当前图片重新裁剪（基于已上传的 URL 重新载入裁剪器）"
+          onClick={async () => {
+            // 从当前 URL 抓回 Blob → 走裁剪流程
+            try {
+              const resp = await fetch(assetUrl(value!));
+              const blob = await resp.blob();
+              const file = new File([blob], "current.png", { type: blob.type });
+              handleFile(file);
+            } catch (e: any) {
+              message.error(e?.message || "无法载入当前图片");
+            }
+          }}
+        >
+          重新裁剪
+        </Button>
+      )}
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          initialAspect={aspect}
+          onCancel={handleCropCancel}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 }
 
-/* ===== 多图上传（images JSON 数组，存字符串） ===== */
-function MultiImageUpload({ value, onChange }: { value?: string; onChange?: (v: string) => void }) {
+/* ===== 多图上传（images JSON 数组，存字符串；支持上传后裁剪） ===== */
+function MultiImageUpload({ value, onChange, crop = true }: { value?: string; onChange?: (v: string) => void; crop?: boolean }) {
   const [up, setUp] = useState(false);
+  // 裁剪 modal 状态
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [pendingFileName, setPendingFileName] = useState<string>("");
   const urls: string[] = (() => {
     if (!value) return [];
     try {
@@ -56,11 +122,11 @@ function MultiImageUpload({ value, onChange }: { value?: string; onChange?: (v: 
     }
   })();
 
-  async function doUpload(file: File) {
+  async function uploadBlob(blob: Blob, fileName: string) {
     setUp(true);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", new File([blob], fileName.replace(/\.\w+$/, ".png"), { type: "image/png" }));
       const d = await api.post<{ url: string }>("/api/admin/upload", fd);
       onChange?.(JSON.stringify([...urls, d.url]));
       message.success("上传成功");
@@ -70,6 +136,32 @@ function MultiImageUpload({ value, onChange }: { value?: string; onChange?: (v: 
       setUp(false);
     }
   }
+
+  async function handleFile(file: File) {
+    if (!crop) {
+      await uploadBlob(file, file.name);
+      return;
+    }
+    const url = fileToObjectURL(file);
+    setPendingFileName(file.name);
+    setCropSrc(url);
+  }
+
+  async function handleCropConfirm(blob: Blob) {
+    const src = cropSrc!;
+    const name = pendingFileName || "image.png";
+    if (src) URL.revokeObjectURL(src);
+    setCropSrc(null);
+    setPendingFileName("");
+    await uploadBlob(blob, name);
+  }
+
+  function handleCropCancel() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    setPendingFileName("");
+  }
+
   function remove(i: number) {
     onChange?.(JSON.stringify(urls.filter((_, idx) => idx !== i)));
   }
@@ -90,9 +182,16 @@ function MultiImageUpload({ value, onChange }: { value?: string; onChange?: (v: 
           </div>
         ))}
       </div>
-      <Upload accept="image/*" showUploadList={false} beforeUpload={(f) => { doUpload(f); return false; }}>
+      <Upload accept="image/*" showUploadList={false} beforeUpload={(f) => { handleFile(f); return false; }}>
         <Button icon={<UploadOutlined />} loading={up} size="small">添加图片</Button>
       </Upload>
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          onCancel={handleCropCancel}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 }
@@ -165,7 +264,7 @@ function SeriesPanel() {
         <Form form={form} layout="vertical" initialValues={{ status: 1, sort_order: 1 }}>
           <Form.Item name="name" label="名称" rules={[{ required: true, message: "请输入名称" }]}><Input /></Form.Item>
           <Form.Item name="description" label="描述"><Input.TextArea rows={2} /></Form.Item>
-          <Form.Item name="cover_image" label="封面图"><ImageUpload /></Form.Item>
+          <Form.Item name="cover_image" label="封面图"><ImageUpload aspect={16 / 9} /></Form.Item>
           <Form.Item name="sort_order" label="排序"><InputNumber style={{ width: "100%" }} /></Form.Item>
           <Form.Item name="status" label="状态" valuePropName="checked" getValueFromEvent={(e) => (e ? 1 : 0)} getValueProps={(v) => ({ checked: v === 1 })}>
             <Switch checkedChildren="启用" unCheckedChildren="停用" />
@@ -385,7 +484,7 @@ function ProductPanel() {
             <Input.TextArea rows={3} />
           </Form.Item>
           <div className="grid grid-cols-2 gap-4">
-            <Form.Item name="cover_image" label="封面图"><ImageUpload /></Form.Item>
+            <Form.Item name="cover_image" label="封面图"><ImageUpload aspect={16 / 9} /></Form.Item>
             <Form.Item name="images" label="多图（JSON 数组）"><MultiImageUpload /></Form.Item>
           </div>
           <div className="grid grid-cols-2 gap-4">
