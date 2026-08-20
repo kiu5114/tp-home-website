@@ -127,7 +127,7 @@ export default function Cases() {
     <div>
       {/* 子页头图 */}
       <section className="relative h-[38vh] min-h-[300px] bg-ink flex items-center overflow-hidden">
-        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url(${assetUrl("/uploads/placeholder.svg")})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("/placeholder.svg")`, backgroundSize: "cover", backgroundPosition: "center" }} />
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-white">
           <p className="eyebrow text-gold-soft mb-3">CASES</p>
           <h1 className="font-serif text-4xl md:text-5xl font-semibold">新案例展示</h1>

@@ -133,7 +133,7 @@ export default function News() {
     <div>
       {/* 子页头图 */}
       <section className="relative h-[34vh] min-h-[260px] bg-ink flex items-center overflow-hidden">
-        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url(${assetUrl("/uploads/placeholder.svg")})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("/placeholder.svg")`, backgroundSize: "cover", backgroundPosition: "center" }} />
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-white">
           <p className="eyebrow text-gold-soft mb-3">NEWS</p>
           <h1 className="font-serif text-4xl md:text-5xl font-semibold">新闻中心</h1>

@@ -112,7 +112,7 @@ export default function About() {
     <div>
       {/* 子页头图 */}
       <section className="relative h-[34vh] min-h-[260px] bg-ink flex items-center overflow-hidden">
-        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url(${assetUrl("/uploads/placeholder.svg")})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url("/placeholder.svg")`, backgroundSize: "cover", backgroundPosition: "center" }} />
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-white">
           <p className="eyebrow text-gold-soft mb-3">ABOUT TP</p>
           <h1 className="font-serif text-4xl md:text-5xl font-semibold">关于我们</h1>
@@ -171,7 +171,7 @@ export default function About() {
       <section id="brand" className="max-w-7xl mx-auto px-6 py-16 scroll-mt-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="aspect-[4/3] bg-ink/10 rounded-sm overflow-hidden border border-line">
-            <img src={assetUrl("/uploads/placeholder.svg")} alt="品牌形象" className="w-full h-full object-cover" />
+            <img src="/placeholder.svg" alt="品牌形象" className="w-full h-full object-cover" />
           </div>
           <div>
             <p className="eyebrow mb-3">BRAND</p>
