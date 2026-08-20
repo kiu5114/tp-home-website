@@ -95,6 +95,8 @@ app.include_router(operation_logs.router)
 app.include_router(dashboard.router)
 app.include_router(upload.router)
 # 阶段二新增模块
+# 注意：menus.tree_router 必须先于 menus.router 注册，保证 /tree 不被 /{item_id} 吞掉
+app.include_router(menus.tree_router)
 app.include_router(menus.router)
 app.include_router(dicts.router_types)
 app.include_router(dicts.router_data)

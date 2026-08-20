@@ -1,26 +1,29 @@
 /**
- * 后台应用入口 + 整体布局（含 RBAC 菜单级过滤 + 路由懒加载分包）
+ * 后台应用入口 + 整体布局（动态菜单 + RBAC 菜单级过滤 + 路由懒加载分包）
  * ------------------------------------------------------------------
  * 功能：
  *  1. 登录态守卫：无 token 一律跳转 /login
- *  2. 侧栏菜单：多级分组结构，根据当前登录用户的权限编码（permissions）
- *     动态过滤——无对应"查看"权限的菜单不显示（菜单级 RBAC，开发技术文档 §8）。
+ *  2. 侧栏菜单：**由后端菜单表驱动**（GET /api/admin/menus/tree，含多级分组），
+ *     登录后按当前用户的权限编码（permissions）动态过滤——
+ *     无对应"查看"权限的菜单不显示（菜单级 RBAC，开发技术文档 §8）。
+ *     后端不可用/接口失败时回退到内置静态菜单（FALLBACK_MENU），保证可访问性。
  *  3. 顶部用户区：显示当前用户名 + 退出登录
  *  4. 内容区：注册全部后台页面路由（React.lazy 按路由分包）
  * ------------------------------------------------------------------
- * 数据来源：登录时后端返回 admin（含 permissions 数组），存于 localStorage("tp_admin")
+ * 数据来源：
+ *  - 菜单树：GET /api/admin/menus/tree（登录即可；叶子 perm 字段用于前端过滤）
+ *  - 当前用户：登录时后端返回 admin（含 permissions 数组），存于 localStorage("tp_admin")
  * ------------------------------------------------------------------
  * 【中文注释说明】
- * - MENU：菜单树（分组 + 叶子），叶子含所需权限码 perm；分组无 perm（按子项可见性决定显示）。
+ * - 动态菜单节点：分组(parent_id 为空且有 children) / 叶子(有 path) / 外链(path 以 http 开头)。
  * - hasPerm()：判断当前用户是否拥有某权限码（* 通配放行）。
- * - 菜单项渲染前先递归过滤，实现"低权限角色看不到无权菜单"。
  * - 官网入口为外链，点击在新标签页打开前台。
  * - 【生产优化】所有页面组件用 React.lazy 按路由分包，降低主包体积。
  */
-import { lazy, Suspense, useState, type ReactNode } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Avatar, Dropdown, Drawer, Spin } from "antd";
-import { getAccessToken, clearTokens } from "@tp/api-client";
+import { api, getAccessToken, clearTokens } from "@tp/api-client";
 import Login from "./Login";
 
 // ---------- 路由懒加载（按页面分包，生产优化） ----------
@@ -58,6 +61,19 @@ interface AdminInfo {
   permissions?: string[];
 }
 
+/** 后端菜单树节点（GET /api/admin/menus/tree 返回结构） */
+interface MenuNode {
+  id: number;
+  name: string;
+  path?: string | null;
+  icon?: string | null;
+  parent_id?: number | null;
+  sort_order?: number;
+  perm?: string | null;
+  status?: number;
+  children?: MenuNode[];
+}
+
 /** 读取本地存储的当前用户（可能为 null） */
 function getAdminInfo(): AdminInfo | null {
   try {
@@ -68,21 +84,17 @@ function getAdminInfo(): AdminInfo | null {
   }
 }
 
-/** 菜单节点：分组（含 children）或叶子（含路由/外链） */
-interface MenuNode {
+/** 内置静态菜单兜底（后端不可用时使用；结构与后端种子菜单一致） */
+interface MenuNode2 {
   key: string;
   label: string;
-  perm?: string; // 叶子所需权限码（分组忽略）
+  perm?: string;
   icon?: ReactNode;
-  children?: MenuNode[];
-  external?: string; // 外链地址（新标签页打开）
+  children?: MenuNode2[];
+  external?: string;
 }
 
-/**
- * 后台左侧菜单树（多级分组，依据需求菜单结构）。
- * 权限码与后端 require_perm 编码体系保持一致。
- */
-const MENU: MenuNode[] = [
+const FALLBACK_MENU: MenuNode2[] = [
   {
     key: "g-dashboard",
     label: "仪表盘",
@@ -142,7 +154,7 @@ const MENU: MenuNode[] = [
   { key: "official", label: "TP 全屋家居官网", external: "http://127.0.0.1:5173" },
 ];
 
-/** 菜单 key → 路由路径 */
+/** 菜单 key → 路由路径（静态兜底用） */
 const pathMap: Record<string, string> = {
   dashboard: "/dashboard",
   home: "/home",
@@ -179,8 +191,41 @@ function hasPerm(admin: AdminInfo | null, code: string): boolean {
   return perms.includes(code);
 }
 
-/** 将菜单树递归转换为 AntD Menu items，并按权限过滤 */
-function toAntdItems(nodes: MenuNode[], admin: AdminInfo | null): any[] {
+/** 将后端菜单树（MenuNode）递归转换为 AntD Menu items，并按权限过滤 */
+function buildDynamicItems(nodes: MenuNode[], admin: AdminInfo | null): any[] {
+  const items: any[] = [];
+  for (const n of nodes) {
+    const children = n.children && n.children.length ? buildDynamicItems(n.children, admin) : [];
+    const path = n.path || "";
+    if (children.length) {
+      // 分组：有可见子项才显示
+      items.push({ key: `g-${n.id}`, label: n.name, icon: undefined, children });
+    } else if (path.startsWith("http")) {
+      // 外链（如官网入口）：新标签页打开
+      items.push({
+        key: `ext-${n.id}`,
+        label: (
+          <a
+            onClick={(e) => {
+              e.preventDefault();
+              window.open(path, "_blank");
+            }}
+          >
+            {n.name}
+          </a>
+        ),
+      });
+    } else {
+      // 叶子：无权限不显示
+      if (n.perm && !hasPerm(admin, n.perm)) continue;
+      items.push({ key: path || `m-${n.id}`, label: n.name, icon: undefined });
+    }
+  }
+  return items;
+}
+
+/** 将静态兜底菜单树转换为 AntD Menu items，并按权限过滤 */
+function toAntdItems(nodes: MenuNode2[], admin: AdminInfo | null): any[] {
   const items: any[] = [];
   for (const n of nodes) {
     if (n.children) {
@@ -213,12 +258,37 @@ function toAntdItems(nodes: MenuNode[], admin: AdminInfo | null): any[] {
 /** 后台整体布局组件（侧栏 + 顶栏 + 内容区） */
 function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const admin = getAdminInfo();
   // 移动端抽屉开合状态：小屏用 Drawer 代替固定 Sider
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // 动态菜单：null=未加载（先用静态兜底）；[]=接口失败（回退静态）；非空=后端菜单树
+  const [dynamicItems, setDynamicItems] = useState<any[] | null>(null);
 
-  // 根据当前用户权限过滤菜单（递归，无对应"查看"权限的菜单项不渲染）
-  const visibleMenuItems = toAntdItems(MENU, admin);
+  // 登录后拉取后端菜单树，驱动真实侧栏（菜单管理页的增删改/停用即时生效）
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const d = await api.get<{ list: MenuNode[] }>("/api/admin/menus/tree");
+        if (!alive) return;
+        setDynamicItems(d.list && d.list.length ? buildDynamicItems(d.list, admin) : []);
+      } catch {
+        if (alive) setDynamicItems([]); // 接口失败 → 静态兜底
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 菜单来源：优先后端动态；未加载或失败时用静态兜底
+  const visibleMenuItems =
+    dynamicItems && dynamicItems.length ? dynamicItems : toAntdItems(FALLBACK_MENU, admin);
+
+  // 当前路由对应高亮项（动态菜单 key 即路由路径）
+  const selectedKeys = [location.pathname];
 
   // 展示用户名：优先 name，其次 username，兜底"管理员"
   const displayName = admin?.name || admin?.username || "管理员";
@@ -226,9 +296,23 @@ function AdminLayout() {
   // 菜单点击后的统一跳转处理（关闭抽屉并导航）
   const onMenuClick = ({ key }: { key: string }) => {
     setDrawerOpen(false);
-    if (key === "official") return; // 外链由 a 标签自行处理
-    navigate(pathMap[key] || "/dashboard");
+    if (key.startsWith("g-") || key.startsWith("ext-")) return; // 分组/外链不导航
+    if (key.startsWith("/")) {
+      navigate(key); // 动态菜单：key 即路由路径
+    } else {
+      navigate(pathMap[key] || "/dashboard"); // 静态兜底：key → pathMap
+    }
   };
+
+  const menuEl = (onClick: (info: any) => void) => (
+    <Menu
+      theme="dark"
+      mode="inline"
+      selectedKeys={selectedKeys}
+      items={visibleMenuItems}
+      onClick={onClick}
+    />
+  );
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -236,14 +320,8 @@ function AdminLayout() {
       <Sider width={224} theme="dark" collapsible breakpoint="lg" collapsedWidth={0} onBreakpoint={(broken) => !broken && setDrawerOpen(false)}>
         {/* 品牌区 */}
         <div style={{ color: "#C9A875", fontWeight: 700, padding: 16 }}>TP 全屋家居 · 后台</div>
-        {/* 菜单：items 已按权限过滤（多级分组） */}
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={["dashboard"]}
-          items={visibleMenuItems}
-          onClick={onMenuClick}
-        />
+        {/* 菜单：后端菜单表驱动（按权限过滤，多级分组） */}
+        {menuEl(onMenuClick)}
       </Sider>
 
       {/* ===== 移动端抽屉菜单（仅小屏出现，内容与 Sider 一致） ===== */}
@@ -255,7 +333,7 @@ function AdminLayout() {
         styles={{ body: { padding: 0, background: "#001529" } }}
       >
         <div style={{ color: "#C9A875", fontWeight: 700, padding: 16 }}>TP 全屋家居 · 后台</div>
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={["dashboard"]} items={visibleMenuItems} onClick={onMenuClick} />
+        {menuEl(onMenuClick)}
       </Drawer>
 
       <Layout>

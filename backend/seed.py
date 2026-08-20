@@ -428,6 +428,11 @@ def run_seed(db=None) -> None:
                 db.add(Menu(name=name, path=path, parent_id=groups[grp].id, sort_order=i + 1, perm=perm, status=1, created_at=1, updated_at=1))
             db.commit()
 
+        # 15b) 官网入口（顶级外链，幂等补充：即使菜单表已有数据也会补上）
+        if not db.query(Menu).filter(Menu.name == "TP 全屋家居官网", Menu.parent_id.is_(None)).first():
+            db.add(Menu(name="TP 全屋家居官网", path="http://127.0.0.1:5173", parent_id=None, sort_order=7, perm="", status=1, created_at=1, updated_at=1))
+            db.commit()
+
         # 16) 字典类型 + 字典数据
         if not db.query(DictType).filter(DictType.type_code == "notice_type").first():
             dt = DictType(name="通知公告类型", type_code="notice_type", status=1, remark="通知公告的分类", created_at=1, updated_at=1)

@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import {
-  Button, Card, Form, Input, InputNumber, Modal, Popconfirm, Select, Table, Tag, message,
+  Alert, Button, Card, Form, Input, InputNumber, Modal, Popconfirm, Select, Table, Tag, message,
 } from "antd";
 import { api } from "@tp/api-client";
 
@@ -91,6 +91,12 @@ export default function MenusManage() {
 
   return (
     <Card title="菜单管理" extra={<Button type="primary" onClick={openCreate}>新增菜单</Button>}>
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message="本页数据直接驱动左侧侧栏：新增/编辑/停用菜单后，刷新页面即生效（停用的菜单不会显示）。"
+      />
       <Table rowKey="id" loading={loading} columns={columns} dataSource={list} pagination={{ pageSize: 50 }} size="small" />
       <Modal title={editing ? "编辑菜单" : "新增菜单"} open={modalOpen} onOk={save} onCancel={() => setModalOpen(false)} width={560} destroyOnClose>
         <Form form={form} layout="vertical">
