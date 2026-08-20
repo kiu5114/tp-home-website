@@ -40,7 +40,7 @@ PRD §9.2 仅列出实体名、未给字段的 8 个，由架构师依据功能 
 - **用户表（admin）**：按需求方口径重写——`real_name` 改名 `name`（姓名），新增 `nickname`（昵称）/ `phone`（手机号）/ `email`（邮箱）；保留登录必需 `password_hash`、`last_login_at`。
 - **部门表（department）**：新增 `parent_id`（上级部门，自引用 1:N）。
 - **角色表（role）**：新增 `is_activate` 与审计列；保留 `permissions`/`description`（RBAC 必需）。
-- **全表通用列**：所有 22 张表统一追加 `is_activate`（激活/禁用）、`created_at`（创建人）、`created_date`（创建时间）、`updated_at`（修改人）、`updated_date`（修改时间）；原 `created_by`/`updated_by`/`created_at(时间)` 统一按新约定重命名。
+- **全表通用列**：所有 26 张表统一追加 `is_activate`（激活/禁用）、`created_at`（创建人）、`created_date`（创建时间）、`updated_at`（修改人）、`updated_date`（修改时间）；原 `created_by`/`updated_by`/`created_at(时间)` 统一按新约定重命名。阶段二新增 Menu/DictType/DictData/Notice/LoginLog/Post 六张表（见 §4.22–§4.27）。
 - **状态字段策略（已确认）**：`is_activate` 与原有业务 `status` **共存**——`is_activate` 为通用生命周期标志（激活/禁用），业务工作流 `status`（如新闻草稿/发布、线索处理状态、投递状态）原样保留。
 - **ER 图**：系统域新增 `department → department`（上级部门）自引用环。
 
@@ -532,6 +532,89 @@ PRD §9.2 仅列出实体名、未给字段的 8 个，由架构师依据功能 
 | updated_date | DATETIME | TIMESTAMPTZ | — | 否 | now | （通用列）修改时间 |
 
 > 推导依据：PRD §6.11 BE-SYS-03 操作日志（登录/增删改/状态变更）、UI/UX §6.8。
+
+---
+
+#### 4.22 Menu（后台菜单）— 阶段二新增
+
+| 字段 | SQLite | PostgreSQL | 键 | 可空 | 默认 | 说明 |
+|------|--------|-----------|----|------|------|------|
+| id | INTEGER | INT | PK | 否 | 自增 | 主键 |
+| name | VARCHAR(64) | VARCHAR(64) | — | 否 | — | 菜单名称 |
+| path | VARCHAR(128) | VARCHAR(128) | — | 是 | NULL | 路由路径或外链 |
+| icon | VARCHAR(64) | VARCHAR(64) | — | 是 | NULL | 图标名（预留） |
+| parent_id | INTEGER | INT | FK→Menu(id) | 是 | NULL | 上级菜单（顶级为分组，自引用树形） |
+| sort_order | INTEGER | INT | — | 否 | 0 | 排序 |
+| perm | VARCHAR(64) | VARCHAR(64) | — | 是 | NULL | 所需权限码（菜单级 RBAC 过滤） |
+| component | VARCHAR(128) | VARCHAR(128) | — | 是 | NULL | 前端组件（预留） |
+| status | TINYINT | SMALLINT | — | 否 | 1 | 启用/停用 |
+| （通用列） | — | — | — | — | — | `is_activate`/`created_at`/`created_date`/`updated_at`/`updated_date` |
+
+> 说明：当前前端侧栏为硬编码（App.tsx `MENU`），本表作为菜单数据的统一管理入口；种子已镜像侧栏结构写入 26 条（6 分组 + 20 叶子）。
+
+#### 4.23 DictType（字典类型）— 阶段二新增
+
+| 字段 | SQLite | PostgreSQL | 键 | 可空 | 默认 | 说明 |
+|------|--------|-----------|----|------|------|------|
+| id | INTEGER | INT | PK | 否 | 自增 | 主键 |
+| name | VARCHAR(64) | VARCHAR(64) | — | 否 | — | 类型名称 |
+| type_code | VARCHAR(64) | VARCHAR(64) | — | 否 | — | 类型编码（唯一，如 `notice_type`） |
+| status | TINYINT | SMALLINT | — | 否 | 1 | 启用/停用 |
+| remark | VARCHAR(255) | VARCHAR(255) | — | 是 | NULL | 备注 |
+| （通用列） | — | — | — | — | — | `is_activate`/`created_at`/`created_date`/`updated_at`/`updated_date` |
+
+#### 4.24 DictData（字典数据）— 阶段二新增
+
+| 字段 | SQLite | PostgreSQL | 键 | 可空 | 默认 | 说明 |
+|------|--------|-----------|----|------|------|------|
+| id | INTEGER | INT | PK | 否 | 自增 | 主键 |
+| type_id | INTEGER | INT | FK→DictType(id) | 否 | — | 所属字典类型（级联删除） |
+| label | VARCHAR(128) | VARCHAR(128) | — | 否 | — | 显示标签 |
+| value | VARCHAR(128) | VARCHAR(128) | — | 否 | — | 存储值 |
+| sort_order | INTEGER | INT | — | 否 | 0 | 排序 |
+| status | TINYINT | SMALLINT | — | 否 | 1 | 启用/停用 |
+| remark | VARCHAR(255) | VARCHAR(255) | — | 是 | NULL | 备注 |
+| （通用列） | — | — | — | — | — | `is_activate`/`created_at`/`created_date`/`updated_at`/`updated_date` |
+
+#### 4.25 Notice（通知公告）— 阶段二新增
+
+| 字段 | SQLite | PostgreSQL | 键 | 可空 | 默认 | 说明 |
+|------|--------|-----------|----|------|------|------|
+| id | INTEGER | INT | PK | 否 | 自增 | 主键 |
+| title | VARCHAR(128) | VARCHAR(128) | — | 否 | — | 标题 |
+| content | TEXT | TEXT | — | 是 | NULL | 内容（支持 HTML 片段） |
+| type | VARCHAR(32) | VARCHAR(32) | — | 否 | notice | 类型：`notice`(通知)/`announcement`(公告) |
+| status | TINYINT | SMALLINT | — | 否 | 1 | 发布/草稿 |
+| （通用列） | — | — | — | — | — | `is_activate`/`created_at`/`created_date`/`updated_at`/`updated_date` |
+
+#### 4.26 LoginLog（登录日志）— 阶段二新增
+
+| 字段 | SQLite | PostgreSQL | 键 | 可空 | 默认 | 说明 |
+|------|--------|-----------|----|------|------|------|
+| id | INTEGER | INT | PK | 否 | 自增 | 主键 |
+| admin_id | INTEGER | INT | — | 是 | NULL | 管理员 ID |
+| username | VARCHAR(64) | VARCHAR(64) | — | 是 | NULL | 登录用户名 |
+| ip | VARCHAR(64) | VARCHAR(64) | — | 是 | NULL | 来源 IP |
+| login_time | DATETIME | TIMESTAMPTZ | — | 否 | now | 登录时间 |
+| status | TINYINT | SMALLINT | — | 否 | 1 | 1 成功 / 0 失败 |
+| user_agent | VARCHAR(255) | VARCHAR(255) | — | 是 | NULL | 浏览器 UA |
+| （通用列） | — | — | — | — | — | `is_activate`/`created_at`/`created_date`/`updated_at`/`updated_date` |
+
+> 说明：由 `routers/auth.py` 登录成功 / 登出时自动写入；区别于 OperationLog（业务操作日志）。
+
+#### 4.27 Post（组织岗位）— 阶段二新增
+
+| 字段 | SQLite | PostgreSQL | 键 | 可空 | 默认 | 说明 |
+|------|--------|-----------|----|------|------|------|
+| id | INTEGER | INT | PK | 否 | 自增 | 主键 |
+| name | VARCHAR(64) | VARCHAR(64) | — | 否 | — | 岗位名称 |
+| dept_id | INTEGER | INT | FK→Department(id) | 是 | NULL | 归属部门（SET NULL） |
+| sort_order | INTEGER | INT | — | 否 | 0 | 排序 |
+| status | TINYINT | SMALLINT | — | 否 | 1 | 启用/停用 |
+| remark | VARCHAR(255) | VARCHAR(255) | — | 是 | NULL | 备注 |
+| （通用列） | — | — | — | — | — | `is_activate`/`created_at`/`created_date`/`updated_at`/`updated_date` |
+
+> 说明：组织岗位，区别于招聘职位 `jobs` / `job_applications`（投递）。
 
 ---
 

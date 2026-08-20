@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from deps import CurrentAdmin, DbSession, get_current_admin, record_log
 from errors import AuthError, BizError, ok
-from models import Admin
+from models import Admin, LoginLog
 from schemas import AdminOut, ChangePasswordIn, LoginIn
 from security import (
     create_access_token,
@@ -69,6 +69,8 @@ def login(payload: LoginIn, request: Request, db: DbSession):
     access = create_access_token(admin.id)
     refresh = create_refresh_token(admin.id)
     record_log(db, admin.id, "login", target=admin.username, ip=_client_ip(request))
+    db.add(LoginLog(admin_id=admin.id, username=admin.username, ip=_client_ip(request), status=1, user_agent=request.headers.get("user-agent")))
+    db.commit()
     return ok(
         {
             "access_token": access,
@@ -117,4 +119,6 @@ def change_password(payload: ChangePasswordIn, admin: CurrentAdmin, db: DbSessio
 @router.post("/logout")
 def logout(admin: CurrentAdmin, request: Request, db: DbSession):
     record_log(db, admin.id, "logout", target=admin.username, ip=_client_ip(request))
+    db.add(LoginLog(admin_id=admin.id, username=admin.username, ip=_client_ip(request), status=1, user_agent=request.headers.get("user-agent")))
+    db.commit()
     return ok({"ok": True})

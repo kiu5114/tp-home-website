@@ -39,13 +39,13 @@ const OperationLogs = lazy(() => import("./pages/OperationLogs"));
 const AdminsManage = lazy(() => import("./pages/AdminsManage"));
 const RolesManage = lazy(() => import("./pages/RolesManage"));
 const DepartmentsManage = lazy(() => import("./pages/DepartmentsManage"));
-// 阶段二新增模块（当前为占位，后续替换为真实页面）
-const MenusManage = lazy(() => import("./pages/ComingSoon"));
-const PostsManage = lazy(() => import("./pages/ComingSoon"));
-const DictsManage = lazy(() => import("./pages/ComingSoon"));
-const NoticesManage = lazy(() => import("./pages/ComingSoon"));
-const LoginLogs = lazy(() => import("./pages/ComingSoon"));
-const OnlineUsers = lazy(() => import("./pages/ComingSoon"));
+// 阶段二新增模块
+const MenusManage = lazy(() => import("./pages/MenusManage"));
+const PostsManage = lazy(() => import("./pages/PostsManage"));
+const DictsManage = lazy(() => import("./pages/DictsManage"));
+const NoticesManage = lazy(() => import("./pages/NoticesManage"));
+const LoginLogs = lazy(() => import("./pages/LoginLogs"));
+const OnlineUsers = lazy(() => import("./pages/OnlineUsers"));
 
 const { Sider, Header, Content } = Layout;
 
@@ -317,13 +317,13 @@ function AdminLayout() {
             <Route path="/admins" element={<AdminsManage />} />
             <Route path="/roles" element={<RolesManage />} />
             <Route path="/departments" element={<DepartmentsManage />} />
-            {/* 系统管理 - 阶段二新增（当前占位） */}
-            <Route path="/menus" element={<MenusManage title="菜单管理" />} />
-            <Route path="/posts" element={<PostsManage title="岗位管理" />} />
-            <Route path="/dicts" element={<DictsManage title="字典管理" />} />
-            <Route path="/notices" element={<NoticesManage title="通知公告" />} />
-            <Route path="/login-logs" element={<LoginLogs title="登录日志" />} />
-            <Route path="/online" element={<OnlineUsers title="在线用户" />} />
+            {/* 系统管理 - 阶段二新增 */}
+            <Route path="/menus" element={<MenusManage />} />
+            <Route path="/posts" element={<PostsManage />} />
+            <Route path="/dicts" element={<DictsManage />} />
+            <Route path="/notices" element={<NoticesManage />} />
+            <Route path="/login-logs" element={<LoginLogs />} />
+            <Route path="/online" element={<OnlineUsers />} />
             {/* 未匹配路由 → 回看板 */}
             <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>

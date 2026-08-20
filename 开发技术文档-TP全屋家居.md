@@ -735,15 +735,20 @@ flowchart TB
 | 客服 | 留言/预约管理、门店查看 | 线索状态流转、备注 |
 | 招聘专员 | 招聘管理、投递管理 | 投递状态流转 |
 
-### 8.3 权限编码建议（Permission.code）
+### 8.3 权限编码（Permission.code）
 
-| 分组 | 示例 code |
-|------|-----------|
-| 产品 | `product:view/edit/delete` |
-| 案例 | `case:view/edit/delete` |
-| 新闻 | `news:view/edit/delete` |
-| 系统 | `admin:manage`、`role:manage`、`log:view` |
-| 线索 | `lead:view/update/export` |
+> 实际权限目录以 `backend/seed.py` 的 `PERMISSION_CATALOG` 为准（种子预置，超管自动获得全部）。
+> 通用约定：每个资源含 `:view / :edit / :delete` 三级；监控类仅 `:view`。
+
+| 分组 | code（:view/:edit/:delete） | 对应菜单 |
+|------|------------------------------|----------|
+| 内容 | `home` `banner` `highlight` `series` `space` `product` `case` `news` `about` `store` | 首页配置/关于我们/门店管理/产品管理/案例管理/新闻动态 |
+| 业务 | `lead` `job` `job_application` | 留言预约/招聘管理 |
+| 系统 | `admin` `role` `permission` `department` `menu` `post` `dict` `notice` `site` `upload` `dashboard` | 用户/角色/权限字典/部门/菜单/岗位/字典/通知公告/站点配置/看板 |
+| 监控 | `log`(操作日志) `loginlog`(登录日志) `online`(在线用户) | 系统监控分组 |
+
+后台侧栏为多级分组（见 §9.2）：仪表盘 / 内容管理 / 产品与案例 / 留言与招聘 / 系统管理 / 系统监控 / 官网外链；
+前端按 `Role.permissions` 递归过滤菜单（菜单级 RBAC），后端路由再用 `require_perm` 二次校验（纵深防御）。
 
 ### 8.4 越权行为
 

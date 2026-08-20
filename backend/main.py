@@ -23,10 +23,16 @@ from routers import (
     content,
     dashboard,
     departments,
+    dicts,
     job_applications_admin,
     leads,
+    login_logs,
+    menus,
+    notices,
+    online,
     operation_logs,
     permissions,
+    posts,
     roles,
     site_config,
     upload,
@@ -88,6 +94,14 @@ app.include_router(site_config.router)
 app.include_router(operation_logs.router)
 app.include_router(dashboard.router)
 app.include_router(upload.router)
+# 阶段二新增模块
+app.include_router(menus.router)
+app.include_router(dicts.router_types)
+app.include_router(dicts.router_data)
+app.include_router(notices.router)
+app.include_router(posts.router)
+app.include_router(login_logs.router)
+app.include_router(online.router)
 
 
 @app.get("/")

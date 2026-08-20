@@ -19,12 +19,17 @@ from models import (
     Banner,
     Case,
     Department,
+    DictData,
+    DictType,
     Highlight,
     Job,
+    Menu,
     Milestone,
     NewsArticle,
     NewsCategory,
+    Notice,
     Permission,
+    Post,
     Product,
     ProductSeries,
     Role,
@@ -91,7 +96,21 @@ PERMISSION_CATALOG: dict[str, list[tuple[str, str]]] = {
         ("department:view", "部门查看"),
         ("department:edit", "部门编辑"),
         ("department:delete", "部门删除"),
+        ("menu:view", "菜单查看"),
+        ("menu:edit", "菜单编辑"),
+        ("menu:delete", "菜单删除"),
+        ("post:view", "岗位查看"),
+        ("post:edit", "岗位编辑"),
+        ("post:delete", "岗位删除"),
+        ("dict:view", "字典查看"),
+        ("dict:edit", "字典编辑"),
+        ("dict:delete", "字典删除"),
+        ("notice:view", "通知公告查看"),
+        ("notice:edit", "通知公告编辑"),
+        ("notice:delete", "通知公告删除"),
         ("log:view", "操作日志查看"),
+        ("loginlog:view", "登录日志查看"),
+        ("online:view", "在线用户查看"),
         ("site:view", "站点配置查看"),
         ("site:edit", "站点配置编辑"),
         ("dashboard:view", "看板查看"),
@@ -168,6 +187,12 @@ def run_seed(db=None) -> None:
                 role = Role(name=name, permissions=perms, description=f"{name}（种子）", created_at=1, updated_at=1)
                 db.add(role)
                 db.commit()
+            elif name == "超级管理员":
+                # 超级管理员始终保持与权限目录同步（含后续新增模块的权限码）
+                synced = list(ALL_CODES)
+                if role.permissions != synced:
+                    role.permissions = synced
+                    db.commit()
             role_ids[name] = role.id
 
         # 3) 超级管理员
@@ -360,6 +385,69 @@ def run_seed(db=None) -> None:
         if db.query(Milestone).count() == 0:
             for i, (y, t, d) in enumerate([("2010", "品牌创立", "TP 全屋家居成立"), ("2016", "智能工厂", "建成工业 4.0 工厂"), ("2022", "全国布局", "门店覆盖 200+ 城市")]):
                 db.add(Milestone(year=y, title=t, desc=d, sort_order=i + 1, created_at=1, updated_at=1))
+            db.commit()
+
+        # 15) 菜单（镜像前端侧栏结构，供菜单管理页统一管理）
+        if db.query(Menu).count() == 0:
+            groups = {
+                "dashboard": Menu(name="仪表盘", parent_id=None, sort_order=1, perm="", status=1, created_at=1, updated_at=1),
+                "content": Menu(name="内容管理", parent_id=None, sort_order=2, perm="", status=1, created_at=1, updated_at=1),
+                "product": Menu(name="产品与案例", parent_id=None, sort_order=3, perm="", status=1, created_at=1, updated_at=1),
+                "lead": Menu(name="留言与招聘", parent_id=None, sort_order=4, perm="", status=1, created_at=1, updated_at=1),
+                "system": Menu(name="系统管理", parent_id=None, sort_order=5, perm="", status=1, created_at=1, updated_at=1),
+                "monitor": Menu(name="系统监控", parent_id=None, sort_order=6, perm="", status=1, created_at=1, updated_at=1),
+            }
+            for g in groups.values():
+                db.add(g)
+            db.commit()
+            for g in groups.values():
+                db.refresh(g)
+            menu_leaves = [
+                ("dashboard", "运营看板（核心数据总览）", "/dashboard", "dashboard:view"),
+                ("content", "首页配置", "/home", "home:view"),
+                ("content", "关于我们", "/about", "about:view"),
+                ("content", "门店管理", "/stores", "store:view"),
+                ("content", "站点配置", "/site-config", "site:view"),
+                ("content", "新闻动态", "/news", "news:view"),
+                ("product", "产品管理", "/products", "product:view"),
+                ("product", "案例管理", "/cases", "case:view"),
+                ("lead", "留言预约", "/leads", "lead:view"),
+                ("lead", "招聘管理", "/jobs", "job:view"),
+                ("system", "用户管理", "/admins", "admin:view"),
+                ("system", "角色管理", "/roles", "role:view"),
+                ("system", "菜单管理", "/menus", "menu:view"),
+                ("system", "部门管理", "/departments", "department:view"),
+                ("system", "岗位管理", "/posts", "post:view"),
+                ("system", "字典管理", "/dicts", "dict:view"),
+                ("system", "通知公告", "/notices", "notice:view"),
+                ("monitor", "操作日志", "/logs", "log:view"),
+                ("monitor", "登录日志", "/login-logs", "loginlog:view"),
+                ("monitor", "在线用户", "/online", "online:view"),
+            ]
+            for i, (grp, name, path, perm) in enumerate(menu_leaves):
+                db.add(Menu(name=name, path=path, parent_id=groups[grp].id, sort_order=i + 1, perm=perm, status=1, created_at=1, updated_at=1))
+            db.commit()
+
+        # 16) 字典类型 + 字典数据
+        if not db.query(DictType).filter(DictType.type_code == "notice_type").first():
+            dt = DictType(name="通知公告类型", type_code="notice_type", status=1, remark="通知公告的分类", created_at=1, updated_at=1)
+            db.add(dt)
+            db.commit()
+            db.refresh(dt)
+            for i, (label, value) in enumerate([("通知", "notice"), ("公告", "announcement")]):
+                db.add(DictData(type_id=dt.id, label=label, value=value, sort_order=i + 1, status=1, created_at=1, updated_at=1))
+            db.commit()
+
+        # 17) 通知公告
+        if db.query(Notice).count() == 0:
+            db.add(Notice(title="系统升级维护通知", content="<p>系统将于本周末进行升级维护，请提前保存数据。</p>", type="notice", status=1, created_at=1, updated_at=1))
+            db.commit()
+
+        # 18) 岗位（组织岗位，区别于招聘职位）
+        if db.query(Post).count() == 0:
+            hq = db.query(Department).filter(Department.name == "总部").first()
+            for i, name in enumerate(["总经理", "部门经理", "专员"]):
+                db.add(Post(name=name, dept_id=hq.id if hq else None, sort_order=i + 1, status=1, remark="", created_at=1, updated_at=1))
             db.commit()
 
         db.commit()

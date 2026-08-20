@@ -1,4 +1,4 @@
-"""SQLAlchemy 模型：20 张表（依据数据库设计文档 v1.2 §4 / §5）。
+"""SQLAlchemy 模型：26 张表（依据数据库设计文档 v1.2 §4 / §5；阶段二新增 Menu/DictType/DictData/Notice/LoginLog/Post 六张）。
 
 说明（决策基线 D2）：
 - 案例多图并入 `case.images`（JSON），不建 `case_images` 表；实体共 20 张。
@@ -289,6 +289,92 @@ class OperationLog(Base, AuditMixin):
     ip = Column(String(64))
 
 
+class Menu(Base, AuditMixin):
+    """后台菜单（系统管理-菜单管理，需求菜单结构）。
+
+    - 树形结构：parent_id 自引用（顶级为分组，parent_id 为空）。
+    - perm：该菜单项所需权限码（叶子项用于前端菜单级 RBAC 过滤）。
+    - 当前前端侧栏为硬编码，本表作为菜单数据的统一管理入口。
+    """
+
+    __tablename__ = "menus"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    path = Column(String(128))  # 路由路径或外链
+    icon = Column(String(64))  # 图标名（预留）
+    parent_id = Column(Integer, ForeignKey("menus.id", ondelete="SET NULL"))
+    sort_order = Column(Integer, nullable=False, default=0, server_default="0")
+    perm = Column(String(64))  # 所需权限码
+    component = Column(String(128))  # 前端组件（预留）
+    status = Column(SmallInteger, nullable=False, default=1, server_default="1")
+
+
+class DictType(Base, AuditMixin):
+    """字典类型（系统管理-字典管理）。"""
+
+    __tablename__ = "dict_types"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    type_code = Column(String(64), nullable=False, unique=True)
+    status = Column(SmallInteger, nullable=False, default=1, server_default="1")
+    remark = Column(String(255))
+
+
+class DictData(Base, AuditMixin):
+    """字典数据（隶属于字典类型）。"""
+
+    __tablename__ = "dict_data"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    type_id = Column(Integer, ForeignKey("dict_types.id", ondelete="CASCADE"), nullable=False)
+    label = Column(String(128), nullable=False)
+    value = Column(String(128), nullable=False)
+    sort_order = Column(Integer, nullable=False, default=0, server_default="0")
+    status = Column(SmallInteger, nullable=False, default=1, server_default="1")
+    remark = Column(String(255))
+
+
+class Notice(Base, AuditMixin):
+    """通知公告（系统管理-通知公告）。"""
+
+    __tablename__ = "notices"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(128), nullable=False)
+    content = Column(Text)
+    type = Column(String(32), nullable=False, default="notice", server_default="notice")  # notice/announcement
+    status = Column(SmallInteger, nullable=False, default=1, server_default="1")
+
+
+class LoginLog(Base, AuditMixin):
+    """登录日志（系统监控-登录日志，由 auth 登录/登出写入）。"""
+
+    __tablename__ = "login_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    admin_id = Column(Integer)
+    username = Column(String(64))
+    ip = Column(String(64))
+    login_time = Column(DateTime, nullable=False, default=func.now(), server_default=func.now())
+    status = Column(SmallInteger, nullable=False, default=1, server_default="1")  # 1 成功 0 失败
+    user_agent = Column(String(255))
+
+
+class Post(Base, AuditMixin):
+    """组织岗位（系统管理-岗位管理，区别于招聘职位 jobs）。"""
+
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(64), nullable=False)
+    dept_id = Column(Integer, ForeignKey("departments.id", ondelete="SET NULL"))
+    sort_order = Column(Integer, nullable=False, default=0, server_default="0")
+    status = Column(SmallInteger, nullable=False, default=1, server_default="1")
+    remark = Column(String(255))
+
+
 # 导出全部模型，供 Alembic / seed 引用
 __all__ = [
     "Admin",
@@ -311,4 +397,10 @@ __all__ = [
     "NewsCategory",
     "Permission",
     "OperationLog",
+    "Menu",
+    "DictType",
+    "DictData",
+    "Notice",
+    "LoginLog",
+    "Post",
 ]
